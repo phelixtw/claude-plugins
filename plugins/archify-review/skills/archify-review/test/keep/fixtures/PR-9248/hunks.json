@@ -1,0 +1,767 @@
+{
+  "changes": {
+    "commits": [
+      {
+        "sha": "3094f96130",
+        "subject": "[webview_flutter_platform_interface] Adds support to respond to recoverable SSL certificate errors (#9248)"
+      }
+    ],
+    "files": [
+      {
+        "additions": 4,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_platform_interface/CHANGELOG.md",
+        "status": "modified"
+      },
+      {
+        "additions": 19,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/platform_navigation_delegate.dart",
+        "status": "modified"
+      },
+      {
+        "additions": 41,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/platform_ssl_auth_error.dart",
+        "status": "added"
+      },
+      {
+        "additions": 1,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/types/types.dart",
+        "status": "modified"
+      },
+      {
+        "additions": 15,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/types/x509_certificate.dart",
+        "status": "added"
+      },
+      {
+        "additions": 1,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_platform_interface/lib/webview_flutter_platform_interface.dart",
+        "status": "modified"
+      },
+      {
+        "additions": 1,
+        "deletions": 1,
+        "path": "packages/webview_flutter/webview_flutter_platform_interface/pubspec.yaml",
+        "status": "modified"
+      },
+      {
+        "additions": 13,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_platform_interface/test/platform_navigation_delegate_test.dart",
+        "status": "modified"
+      }
+    ]
+  },
+  "hunks": [
+    {
+      "n": 1,
+      "commit": "3094f96130",
+      "file": "packages/webview_flutter/webview_flutter_platform_interface/CHANGELOG.md",
+      "header": "@@ -1,2 +1,6 @@",
+      "text": "@@ -1,2 +1,6 @@\n+## 2.13.0\n+\n+* Adds support to respond to recoverable SSL certificate errors. See `PlatformNavigationDelegate.setOnSSlAuthError`.\n+\n ## 2.12.0\n ",
+      "lines": [
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 2
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 3
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 4
+        },
+        {
+          "sign": " ",
+          "oldNo": 1,
+          "newNo": 5
+        },
+        {
+          "sign": " ",
+          "oldNo": 2,
+          "newNo": 6
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "commit": "3094f96130",
+      "file": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/platform_navigation_delegate.dart",
+      "header": "@@ -7,4 +7,5 @@ import 'dart:async';",
+      "text": "@@ -7,4 +7,5 @@ import 'dart:async';\n import 'package:flutter/foundation.dart';\n import 'package:plugin_platform_interface/plugin_platform_interface.dart';\n+import 'platform_ssl_auth_error.dart';\n import 'types/types.dart';\n ",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 7,
+          "newNo": 7
+        },
+        {
+          "sign": " ",
+          "oldNo": 8,
+          "newNo": 8
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 9
+        },
+        {
+          "sign": " ",
+          "oldNo": 9,
+          "newNo": 10
+        },
+        {
+          "sign": " ",
+          "oldNo": 10,
+          "newNo": 11
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "commit": "3094f96130",
+      "file": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/platform_navigation_delegate.dart",
+      "header": "@@ -35,4 +36,11 @@ typedef UrlChangeCallback = void Function(UrlChange change);",
+      "text": "@@ -35,4 +36,11 @@ typedef UrlChangeCallback = void Function(UrlChange change);\n typedef HttpAuthRequestCallback = void Function(HttpAuthRequest request);\n \n+/// Signature for callbacks that notify the host application of an SSL\n+/// authentication error.\n+///\n+/// The host application must call either [PlatformSslAuthError.cancel] or\n+/// [PlatformSslAuthError.proceed].\n+typedef SslAuthErrorCallback = void Function(PlatformSslAuthError error);\n+\n /// An interface defining navigation events that occur on the native platform.\n ///",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 35,
+          "newNo": 36
+        },
+        {
+          "sign": " ",
+          "oldNo": 36,
+          "newNo": 37
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 38
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 39
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 40
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 41
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 42
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 43
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 44
+        },
+        {
+          "sign": " ",
+          "oldNo": 37,
+          "newNo": 45
+        },
+        {
+          "sign": " ",
+          "oldNo": 38,
+          "newNo": 46
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "commit": "3094f96130",
+      "file": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/platform_navigation_delegate.dart",
+      "header": "@@ -144,3 +152,14 @@ abstract class PlatformNavigationDelegate extends PlatformInterface {",
+      "text": "@@ -144,3 +152,14 @@ abstract class PlatformNavigationDelegate extends PlatformInterface {\n     );\n   }\n+\n+  /// Invoked when the web view receives a recoverable SSL error for a\n+  /// certificate.\n+  ///\n+  /// The host application must call either [PlatformSslAuthError.cancel] or\n+  /// [PlatformSslAuthError.proceed].\n+  Future<void> setOnSSlAuthError(SslAuthErrorCallback onSslAuthError) {\n+    throw UnimplementedError(\n+      'setOnSSlAuthError is not implemented on the current platform.',\n+    );\n+  }\n }",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 144,
+          "newNo": 152
+        },
+        {
+          "sign": " ",
+          "oldNo": 145,
+          "newNo": 153
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 154
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 155
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 156
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 157
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 158
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 159
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 160
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 161
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 162
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 163
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 164
+        },
+        {
+          "sign": " ",
+          "oldNo": 146,
+          "newNo": 165
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "commit": "3094f96130",
+      "file": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/platform_ssl_auth_error.dart",
+      "header": "@@ -0,0 +1,41 @@",
+      "text": "@@ -0,0 +1,41 @@\n+// Copyright 2013 The Flutter Authors. All rights reserved.\n+// Use of this source code is governed by a BSD-style license that can be\n+// found in the LICENSE file.\n+\n+import 'package:flutter/foundation.dart';\n+\n+import 'types/types.dart';\n+\n+/// Represents an SSL error with the associated certificate.\n+///\n+/// The host application must call [cancel] or, contrary to secure web\n+/// communication standards, [proceed] to provide the web view's response to the\n+/// request. [proceed] should generally only be used in test environments, as\n+/// using it in production can expose users to security and privacy risks.\n+abstract class PlatformSslAuthError {\n+  /// Creates a [PlatformSslAuthError].\n+  @protected\n+  PlatformSslAuthError({required this.certificate, required this.description});\n+\n+  /// The certificate associated with this error.\n+  final X509Certificate? certificate;\n+\n+  /// A human-presentable description for a given error.\n+  final String description;\n+\n+  /// Instructs the WebView that encountered the SSL certificate error to ignore\n+  /// the error and continue communicating with the server.\n+  ///\n+  /// **Warning:** Warning: Calling [proceed] in a production environment is\n+  /// strongly discouraged, as an invalid SSL certificate means that the\n+  /// connection is not secure, so proceeding can expose users to security and\n+  /// privacy risks.\n+  Future<void> proceed();\n+\n+  /// Instructs the WebView that encountered the SSL certificate error to\n+  /// terminate communication with the server.\n+  ///\n+  /// The host application must call this method to prevent a resource from\n+  /// loading when an SSL certificate is invalid.\n+  Future<void> cancel();\n+}",
+      "lines": [
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 2
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 3
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 4
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 5
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 6
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 7
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 8
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 9
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 10
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 11
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 12
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 13
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 14
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 15
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 16
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 17
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 18
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 19
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 20
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 21
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 22
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 23
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 24
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 25
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 26
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 27
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 28
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 29
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 30
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 31
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 32
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 33
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 34
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 35
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 36
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 37
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 38
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 39
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 40
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 41
+        }
+      ]
+    },
+    {
+      "n": 6,
+      "commit": "3094f96130",
+      "file": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/types/types.dart",
+      "header": "@@ -26,2 +26,3 @@ export 'web_resource_response.dart';",
+      "text": "@@ -26,2 +26,3 @@ export 'web_resource_response.dart';\n export 'webview_cookie.dart';\n export 'webview_credential.dart';\n+export 'x509_certificate.dart';",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 26,
+          "newNo": 26
+        },
+        {
+          "sign": " ",
+          "oldNo": 27,
+          "newNo": 27
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 28
+        }
+      ]
+    },
+    {
+      "n": 7,
+      "commit": "3094f96130",
+      "file": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/types/x509_certificate.dart",
+      "header": "@@ -0,0 +1,15 @@",
+      "text": "@@ -0,0 +1,15 @@\n+// Copyright 2013 The Flutter Authors. All rights reserved.\n+// Use of this source code is governed by a BSD-style license that can be\n+// found in the LICENSE file.\n+\n+import 'package:flutter/foundation.dart';\n+\n+/// Represents an X.509 certificate.\n+@immutable\n+class X509Certificate {\n+  /// Creates an [X509Certificate].\n+  const X509Certificate({this.data});\n+\n+  /// A DER representation of the certificate object.\n+  final Uint8List? data;\n+}",
+      "lines": [
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 2
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 3
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 4
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 5
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 6
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 7
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 8
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 9
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 10
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 11
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 12
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 13
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 14
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 15
+        }
+      ]
+    },
+    {
+      "n": 8,
+      "commit": "3094f96130",
+      "file": "packages/webview_flutter/webview_flutter_platform_interface/lib/webview_flutter_platform_interface.dart",
+      "header": "@@ -4,4 +4,5 @@",
+      "text": "@@ -4,4 +4,5 @@\n \n export 'src/platform_navigation_delegate.dart';\n+export 'src/platform_ssl_auth_error.dart';\n export 'src/platform_webview_controller.dart';\n export 'src/platform_webview_cookie_manager.dart';",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 4,
+          "newNo": 4
+        },
+        {
+          "sign": " ",
+          "oldNo": 5,
+          "newNo": 5
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 6
+        },
+        {
+          "sign": " ",
+          "oldNo": 6,
+          "newNo": 7
+        },
+        {
+          "sign": " ",
+          "oldNo": 7,
+          "newNo": 8
+        }
+      ]
+    },
+    {
+      "n": 9,
+      "commit": "3094f96130",
+      "file": "packages/webview_flutter/webview_flutter_platform_interface/pubspec.yaml",
+      "header": "@@ -5,5 +5,5 @@ issue_tracker: https://github.com/flutter/flutter/issues?q=is%3Aissue+is%3Aopen+",
+      "text": "@@ -5,5 +5,5 @@ issue_tracker: https://github.com/flutter/flutter/issues?q=is%3Aissue+is%3Aopen+\n # NOTE: We strongly prefer non-breaking changes, even at the expense of a\n # less-clean API. See https://flutter.dev/go/platform-interface-breaking-changes\n-version: 2.12.0\n+version: 2.13.0\n \n environment:",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 5,
+          "newNo": 5
+        },
+        {
+          "sign": " ",
+          "oldNo": 6,
+          "newNo": 6
+        },
+        {
+          "sign": "-",
+          "oldNo": 7,
+          "newNo": null
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 7
+        },
+        {
+          "sign": " ",
+          "oldNo": 8,
+          "newNo": 8
+        },
+        {
+          "sign": " ",
+          "oldNo": 9,
+          "newNo": 9
+        }
+      ]
+    },
+    {
+      "n": 10,
+      "commit": "3094f96130",
+      "file": "packages/webview_flutter/webview_flutter_platform_interface/test/platform_navigation_delegate_test.dart",
+      "header": "@@ -156,4 +156,17 @@ void main() {",
+      "text": "@@ -156,4 +156,17 @@ void main() {\n     );\n   });\n+\n+  test(\n+      'Default implementation of setOnSSlAuthError should throw unimplemented error',\n+      () {\n+    final PlatformNavigationDelegate callbackDelegate =\n+        ExtendsPlatformNavigationDelegate(\n+            const PlatformNavigationDelegateCreationParams());\n+\n+    expect(\n+      () => callbackDelegate.setOnSSlAuthError((PlatformSslAuthError eror) {}),\n+      throwsUnimplementedError,\n+    );\n+  });\n }\n ",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 156,
+          "newNo": 156
+        },
+        {
+          "sign": " ",
+          "oldNo": 157,
+          "newNo": 157
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 158
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 159
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 160
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 161
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 162
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 163
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 164
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 165
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 166
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 167
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 168
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 169
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 170
+        },
+        {
+          "sign": " ",
+          "oldNo": 158,
+          "newNo": 171
+        },
+        {
+          "sign": " ",
+          "oldNo": 159,
+          "newNo": 172
+        }
+      ]
+    }
+  ]
+}

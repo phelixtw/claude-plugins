@@ -1,0 +1,495 @@
+{
+  "changes": {
+    "commits": [
+      {
+        "sha": "12b43a192e",
+        "subject": "[webview_flutter_wkwebview] Fix crash when calling setOnConsoleMessage multiple times (#10922)"
+      }
+    ],
+    "files": [
+      {
+        "additions": 4,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_wkwebview/CHANGELOG.md",
+        "status": "modified"
+      },
+      {
+        "additions": 13,
+        "deletions": 5,
+        "path": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+        "status": "modified"
+      },
+      {
+        "additions": 1,
+        "deletions": 1,
+        "path": "packages/webview_flutter/webview_flutter_wkwebview/pubspec.yaml",
+        "status": "modified"
+      },
+      {
+        "additions": 20,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_wkwebview/test/webkit_webview_controller_test.dart",
+        "status": "modified"
+      }
+    ]
+  },
+  "hunks": [
+    {
+      "n": 1,
+      "commit": "12b43a192e",
+      "file": "packages/webview_flutter/webview_flutter_wkwebview/CHANGELOG.md",
+      "header": "@@ -1,2 +1,6 @@",
+      "text": "@@ -1,2 +1,6 @@\n+## 3.23.7\n+\n+* Fixes crash when calling setOnConsoleMessage multiple times.\n+\n ## 3.23.6\n ",
+      "lines": [
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 2
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 3
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 4
+        },
+        {
+          "sign": " ",
+          "oldNo": 1,
+          "newNo": 5
+        },
+        {
+          "sign": " ",
+          "oldNo": 2,
+          "newNo": 6
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "commit": "12b43a192e",
+      "file": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+      "header": "@@ -295,4 +295,6 @@ class WebKitWebViewController extends PlatformWebViewController {",
+      "text": "@@ -295,4 +295,6 @@ class WebKitWebViewController extends PlatformWebViewController {\n   }\n \n+  static const String _onConsoleMessageChannelName = 'fltConsoleMessage';\n+\n   /// The WebKit WebView being controlled.\n   late final PlatformWebView _webView = PlatformWebView(",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 295,
+          "newNo": 295
+        },
+        {
+          "sign": " ",
+          "oldNo": 296,
+          "newNo": 296
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 297
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 298
+        },
+        {
+          "sign": " ",
+          "oldNo": 297,
+          "newNo": 299
+        },
+        {
+          "sign": " ",
+          "oldNo": 298,
+          "newNo": 300
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "commit": "12b43a192e",
+      "file": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+      "header": "@@ -701,9 +703,14 @@ class WebKitWebViewController extends PlatformWebViewController {",
+      "text": "@@ -701,9 +703,14 @@ class WebKitWebViewController extends PlatformWebViewController {\n   Future<void> setOnConsoleMessage(\n     void Function(JavaScriptConsoleMessage consoleMessage) onConsoleMessage,\n-  ) {\n+  ) async {\n     _onConsoleMessageCallback = onConsoleMessage;\n \n+    // If channel name is already present, the callback is already registered.\n+    if (_javaScriptChannelParams.containsKey(_onConsoleMessageChannelName)) {\n+      return;\n+    }\n+\n     final JavaScriptChannelParams channelParams = WebKitJavaScriptChannelParams(\n-      name: 'fltConsoleMessage',\n+      name: _onConsoleMessageChannelName,\n       onMessageReceived: (JavaScriptMessage message) {\n         if (_onConsoleMessageCallback == null) {",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 701,
+          "newNo": 703
+        },
+        {
+          "sign": " ",
+          "oldNo": 702,
+          "newNo": 704
+        },
+        {
+          "sign": "-",
+          "oldNo": 703,
+          "newNo": null
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 705
+        },
+        {
+          "sign": " ",
+          "oldNo": 704,
+          "newNo": 706
+        },
+        {
+          "sign": " ",
+          "oldNo": 705,
+          "newNo": 707
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 708
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 709
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 710
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 711
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 712
+        },
+        {
+          "sign": " ",
+          "oldNo": 706,
+          "newNo": 713
+        },
+        {
+          "sign": "-",
+          "oldNo": 707,
+          "newNo": null
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 714
+        },
+        {
+          "sign": " ",
+          "oldNo": 708,
+          "newNo": 715
+        },
+        {
+          "sign": " ",
+          "oldNo": 709,
+          "newNo": 716
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "commit": "12b43a192e",
+      "file": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+      "header": "@@ -737,5 +744,5 @@ class WebKitWebViewController extends PlatformWebViewController {",
+      "text": "@@ -737,5 +744,5 @@ class WebKitWebViewController extends PlatformWebViewController {\n     );\n \n-    addJavaScriptChannel(channelParams);\n+    await addJavaScriptChannel(channelParams);\n     return _injectConsoleOverride();\n   }",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 737,
+          "newNo": 744
+        },
+        {
+          "sign": " ",
+          "oldNo": 738,
+          "newNo": 745
+        },
+        {
+          "sign": "-",
+          "oldNo": 739,
+          "newNo": null
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 746
+        },
+        {
+          "sign": " ",
+          "oldNo": 740,
+          "newNo": 747
+        },
+        {
+          "sign": " ",
+          "oldNo": 741,
+          "newNo": 748
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "commit": "12b43a192e",
+      "file": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+      "header": "@@ -904,5 +911,6 @@ class WebKitWebViewController extends PlatformWebViewController {",
+      "text": "@@ -904,5 +911,6 @@ class WebKitWebViewController extends PlatformWebViewController {\n     // removeCyclicObject method is passed in to solve the error.\n     final overrideScript = WKUserScript(\n-      source: '''\n+      source:\n+          '''\n var _flutter_webview_plugin_overrides = _flutter_webview_plugin_overrides || {\n   removeCyclicObject: function() {",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 904,
+          "newNo": 911
+        },
+        {
+          "sign": " ",
+          "oldNo": 905,
+          "newNo": 912
+        },
+        {
+          "sign": "-",
+          "oldNo": 906,
+          "newNo": null
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 913
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 914
+        },
+        {
+          "sign": " ",
+          "oldNo": 907,
+          "newNo": 915
+        },
+        {
+          "sign": " ",
+          "oldNo": 908,
+          "newNo": 916
+        }
+      ]
+    },
+    {
+      "n": 6,
+      "commit": "12b43a192e",
+      "file": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+      "header": "@@ -933,5 +941,5 @@ var _flutter_webview_plugin_overrides = _flutter_webview_plugin_overrides || {",
+      "text": "@@ -933,5 +941,5 @@ var _flutter_webview_plugin_overrides = _flutter_webview_plugin_overrides || {\n     };\n \n-    window.webkit.messageHandlers.fltConsoleMessage.postMessage(JSON.stringify(log));\n+    window.webkit.messageHandlers.$_onConsoleMessageChannelName.postMessage(JSON.stringify(log));\n   }\n };",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 933,
+          "newNo": 941
+        },
+        {
+          "sign": " ",
+          "oldNo": 934,
+          "newNo": 942
+        },
+        {
+          "sign": "-",
+          "oldNo": 935,
+          "newNo": null
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 943
+        },
+        {
+          "sign": " ",
+          "oldNo": 936,
+          "newNo": 944
+        },
+        {
+          "sign": " ",
+          "oldNo": 937,
+          "newNo": 945
+        }
+      ]
+    },
+    {
+      "n": 7,
+      "commit": "12b43a192e",
+      "file": "packages/webview_flutter/webview_flutter_wkwebview/pubspec.yaml",
+      "header": "@@ -3,5 +3,5 @@ description: A Flutter plugin that provides a WebView widget based on Apple's WK",
+      "text": "@@ -3,5 +3,5 @@ description: A Flutter plugin that provides a WebView widget based on Apple's WK\n repository: https://github.com/flutter/packages/tree/main/packages/webview_flutter/webview_flutter_wkwebview\n issue_tracker: https://github.com/flutter/flutter/issues?q=is%3Aissue+is%3Aopen+label%3A%22p%3A+webview%22\n-version: 3.23.6\n+version: 3.23.7\n \n environment:",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 3,
+          "newNo": 3
+        },
+        {
+          "sign": " ",
+          "oldNo": 4,
+          "newNo": 4
+        },
+        {
+          "sign": "-",
+          "oldNo": 5,
+          "newNo": null
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 5
+        },
+        {
+          "sign": " ",
+          "oldNo": 6,
+          "newNo": 6
+        },
+        {
+          "sign": " ",
+          "oldNo": 7,
+          "newNo": 7
+        }
+      ]
+    },
+    {
+      "n": 8,
+      "commit": "12b43a192e",
+      "file": "packages/webview_flutter/webview_flutter_wkwebview/test/webkit_webview_controller_test.dart",
+      "header": "@@ -1816,4 +1816,24 @@ window.addEventListener(\"error\", function(e) {",
+      "text": "@@ -1816,4 +1816,24 @@ window.addEventListener(\"error\", function(e) {\n         expect(logs[JavaScriptLogLevel.warning], 'Warning message');\n       });\n+\n+      test('setOnConsoleMessage called twice does not throw', () async {\n+        final mockUserContentController = MockWKUserContentController();\n+        final WebKitWebViewController controller = createControllerWithMocks(\n+          mockUserContentController: mockUserContentController,\n+        );\n+\n+        await controller.setOnConsoleMessage(\n+          (JavaScriptConsoleMessage message) {},\n+        );\n+        await controller.setOnConsoleMessage(\n+          (JavaScriptConsoleMessage message) {},\n+        );\n+\n+        verifyNever(\n+          mockUserContentController.removeScriptMessageHandler(\n+            'fltConsoleMessage',\n+          ),\n+        );\n+      });\n     });\n ",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 1816,
+          "newNo": 1816
+        },
+        {
+          "sign": " ",
+          "oldNo": 1817,
+          "newNo": 1817
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1818
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1819
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1820
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1821
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1822
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1823
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1824
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1825
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1826
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1827
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1828
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1829
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1830
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1831
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1832
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1833
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1834
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1835
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1836
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1837
+        },
+        {
+          "sign": " ",
+          "oldNo": 1818,
+          "newNo": 1838
+        },
+        {
+          "sign": " ",
+          "oldNo": 1819,
+          "newNo": 1839
+        }
+      ]
+    }
+  ]
+}

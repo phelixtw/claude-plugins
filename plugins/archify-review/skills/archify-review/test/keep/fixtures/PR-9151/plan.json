@@ -1,0 +1,323 @@
+{
+  "meta": {
+    "title": "PR-9151 Android WebView 開放 setUseWideViewPort，預設改為 false",
+    "locale": "zh-TW",
+    "quality_profile": "showcase",
+    "platform": "app",
+    "framework": "flutter"
+  },
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "這張 Story 的目的",
+      "items": [
+        "**Android** 版 WebView 原本在建構時固定呼叫 `setUseWideViewPort(true)`，App 無法關掉，和 Android 原生 WebView、iOS 的預設行為都不同（commit message）。",
+        "新增公開方法 **`AndroidWebViewController.setUseWideViewPort`**，讓 App 自己決定要不要使用 wide viewport。",
+        "建構時的預設值改成 `false`，與原生 WebView 一致；commit message 提到這也讓 `document.documentElement.scrollHeight` 回傳正確高度（flutter/flutter#106999）。",
+        "範例 App 新增「Viewport meta example」選單項目，載入一個帶 `<meta name=\"viewport\">` 的網頁。"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "待確認問題 / TODO",
+      "items": [
+        "[medium][code-review] 預設值從 `true` 改成 `false` 會改變既有 App 的排版（沒有 viewport meta 的網頁會改用裝置寬度顯示），CHANGELOG 有寫但版本只升 minor（4.5.0 → 4.6.0）；這算不算 breaking change，要不要升 major？（android_webview_controller.dart:89, ctrl-settings）",
+        "[medium][code-review] 範例「Viewport meta example」只載入含 viewport meta 的網頁，沒有地方呼叫 `setUseWideViewPort`，看不出新 API 開與關的差別；要不要在範例加一個切換？（main.dart:780, menu-ctrl）",
+        "[low][security-review] 審查的 hunk 沒有發現問題",
+        "[low][code-review] 範例網頁的圖片從外部網址載入，離線或網路受限時範例會缺圖；改用內嵌的 CSS 方塊就能示範同樣的寬度效果（main.dart:156, menu-ctrl）"
+      ]
+    }
+  ],
+  "components": [
+    {
+      "id": "changelog",
+      "type": "frontend",
+      "label": "CHANGELOG.md",
+      "sublabel": "4.6.0 條目",
+      "layers": {
+        "mvvm": "model",
+        "flutter": "data"
+      },
+      "pos": [
+        20,
+        30
+      ],
+      "size": [
+        300,
+        84
+      ],
+      "files": [
+        {
+          "path": "packages/webview_flutter/webview_flutter_android/CHANGELOG.md",
+          "summary": "新增 4.6.0 條目：新 API 與預設值改變",
+          "hunks": "all"
+        }
+      ],
+      "code": {
+        "brief": {
+          "role": "**`CHANGELOG.md`** 是 `webview_flutter_android` 套件的版本紀錄。",
+          "task": "新增 `4.6.0`：可以設定 wide viewport，且 `WebSettings.setUseWideViewPort` 的預設改成 `false`。"
+        }
+      }
+    },
+    {
+      "id": "menu",
+      "type": "frontend",
+      "label": "main.dart",
+      "sublabel": "範例 App · Viewport meta example",
+      "layers": {
+        "mvvm": "view",
+        "flutter": "ui"
+      },
+      "pos": [
+        20,
+        144
+      ],
+      "size": [
+        300,
+        84
+      ],
+      "files": [
+        {
+          "path": "packages/webview_flutter/webview_flutter_android/example/lib/main.dart",
+          "summary": "選單新增 Viewport meta example，載入帶 viewport meta 的網頁"
+        }
+      ],
+      "code": {
+        "brief": {
+          "role": "**`main.dart`** 是 `webview_flutter_android` 的範例 App，右上選單 `SampleMenu` 的每個項目示範一個 WebView 功能。",
+          "task": "新增網頁字串 `kViewportMetaPage`、選單項目 `MenuOptions.viewportMeta` 與 `_onViewportMetaExample`，點選後用 `loadHtmlString` 載入這個網頁。",
+          "concepts": [
+            {
+              "term": "viewport meta",
+              "text": "網頁用 `<meta name=\"viewport\" content=\"width=...\">` 告訴瀏覽器要用多寬的版面排版，再縮放到螢幕大小。"
+            },
+            {
+              "term": "PopupMenuButton",
+              "text": "Flutter 的彈出選單元件，使用者選一個項目時會以該項目的 `value` 呼叫 `onSelected`。"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "pubspec",
+      "type": "frontend",
+      "label": "pubspec.yaml",
+      "sublabel": "version 4.6.0",
+      "layers": {
+        "mvvm": "model",
+        "flutter": "data"
+      },
+      "pos": [
+        460,
+        30
+      ],
+      "size": [
+        300,
+        84
+      ],
+      "files": [
+        {
+          "path": "packages/webview_flutter/webview_flutter_android/pubspec.yaml",
+          "summary": "版本從 4.5.0 升到 4.6.0",
+          "hunks": "all"
+        }
+      ],
+      "code": {
+        "brief": {
+          "role": "**`pubspec.yaml`** 是套件的設定檔，記錄名稱、版本與相依套件。",
+          "task": "`version` 從 `4.5.0` 改成 `4.6.0`，和 CHANGELOG 的新條目對應。"
+        }
+      }
+    },
+    {
+      "id": "ctrl",
+      "type": "frontend",
+      "label": "android_webview_controller.dart",
+      "sublabel": "setUseWideViewPort",
+      "layers": {
+        "mvvm": "model",
+        "flutter": "data"
+      },
+      "pos": [
+        460,
+        144
+      ],
+      "size": [
+        330,
+        84
+      ],
+      "files": [
+        {
+          "path": "packages/webview_flutter/webview_flutter_android/lib/src/android_webview_controller.dart",
+          "summary": "預設 wide viewport 改為 false；新增 setUseWideViewPort"
+        }
+      ],
+      "code": {
+        "brief": {
+          "role": "**`android_webview_controller.dart`** 是 Android 版 WebView 的 controller，把 Flutter 端的設定轉給原生 `WebView` 與它的 `WebSettings`。",
+          "task": "建構子裡的 `setUseWideViewPort(true)` 改成 `false`，並新增公開方法 `setUseWideViewPort(bool use)`，直接轉呼叫 `_webView.settings.setUseWideViewPort(use)`。",
+          "concepts": [
+            {
+              "term": "WebSettings.setUseWideViewPort",
+              "text": "Android `WebSettings` 的設定：開啟時 WebView 支援 viewport meta，沒有 meta 的網頁會用寬版面排版；關閉時版面寬度等於 WebView 的寬度。"
+            },
+            {
+              "term": "setLoadWithOverviewMode",
+              "text": "開啟時 WebView 會把網頁縮小到內容寬度剛好塞進畫面，常和 wide viewport 一起使用。"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "settings",
+      "type": "frontend",
+      "label": "WebSettings",
+      "sublabel": "原生設定（未改動）",
+      "layers": {
+        "mvvm": "model",
+        "flutter": "data"
+      },
+      "pos": [
+        930,
+        144
+      ],
+      "size": [
+        210,
+        84
+      ],
+      "code": {
+        "brief": {
+          "role": "**`WebSettings`** 是 Android 原生 WebView 的設定物件，Dart 端透過 `android_webkit.g.dart` 產生的 proxy 呼叫它。",
+          "task": "這次沒有改動。`setUseWideViewPort` 在產生的 proxy 裡已經存在（`android_webkit.g.dart:2648`），這次只是讓 controller 對外開放。"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "menu-ctrl",
+      "from": "menu",
+      "to": "ctrl",
+      "label": "loadHtmlString",
+      "file": "packages/webview_flutter/webview_flutter_android/example/lib/main.dart",
+      "from_symbol": "SampleMenu._onViewportMetaExample",
+      "to_symbol": "AndroidWebViewController.loadHtmlString",
+      "action": "使用者在範例 App 右上選單點「Viewport meta example」",
+      "note": "範例新增一個選單項目，載入帶 viewport meta 的網頁。",
+      "tests": {
+        "functions": [
+          {
+            "symbol": "kViewportMetaPage",
+            "why": "範例頁宣告 `width=1000` 的 viewport meta，用來看 viewport 設定對排版的影響",
+            "lines": "+142..+160",
+            "status": "none",
+            "by": []
+          },
+          {
+            "symbol": "MenuOptions.viewportMeta",
+            "why": "選單靠這個值分派到 viewport 範例；少了它，選了項目也不會載入範例頁",
+            "lines": "+348",
+            "status": "none",
+            "by": []
+          },
+          {
+            "symbol": "SampleMenu.build",
+            "why": "選單要多出「Viewport meta example」，選了才會呼叫 `_onViewportMetaExample`",
+            "lines": "+404..+405,+478..+481",
+            "status": "none",
+            "by": []
+          },
+          {
+            "symbol": "_onViewportMetaExample",
+            "why": "選了範例要把 `kViewportMetaPage` 載進 WebView，否則看不到 viewport 範例",
+            "lines": "+779..+781",
+            "status": "none",
+            "by": []
+          }
+        ],
+        "suggested": [
+          {
+            "covers": "kViewportMetaPage",
+            "given": "WebView 載入 `kViewportMetaPage`",
+            "when": "頁面完成排版",
+            "then": "`#shape` 的寬度是 viewport 寬度的一半（50vw）"
+          },
+          {
+            "covers": "MenuOptions.viewportMeta",
+            "given": "範例 App 的右上選單已展開",
+            "when": "點「Viewport meta example」",
+            "then": "`onSelected` 收到 `MenuOptions.viewportMeta`"
+          },
+          {
+            "covers": "SampleMenu.build",
+            "given": "`SampleMenu` 已建立",
+            "when": "展開選單",
+            "then": "最後一項是「Viewport meta example」"
+          },
+          {
+            "covers": "_onViewportMetaExample",
+            "given": "用 mock 的 `WebViewController` 建立 `SampleMenu`",
+            "when": "選「Viewport meta example」",
+            "then": "`loadHtmlString` 收到 `kViewportMetaPage`"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ctrl-settings",
+      "from": "ctrl",
+      "to": "settings",
+      "label": "setUseWideViewPort",
+      "file": "packages/webview_flutter/webview_flutter_android/lib/src/android_webview_controller.dart",
+      "from_symbol": "AndroidWebViewController",
+      "to_symbol": "WebSettings.setUseWideViewPort",
+      "story": "**controller** 像替新房子做初始裝潢的工班，以前一進門就把客廳隔間全打掉（wide viewport 開）；現在照原生 WebView 的出廠樣子保留隔間（`false`），並在門口留一張單子 `setUseWideViewPort`，屋主想打掉再自己勾。",
+      "note": "建構時預設改成 `false`，並新增可由 App 呼叫的 `setUseWideViewPort`。",
+      "tests": {
+        "functions": [
+          {
+            "symbol": "AndroidWebViewController()",
+            "why": "建構時 wide viewport 預設從 `true` 改成 `false`，所有用這個 controller 的網頁排版都受影響",
+            "lines": "-89,+89",
+            "status": "new",
+            "by": [
+              "android_webview_controller_test.dart:292"
+            ]
+          },
+          {
+            "symbol": "setUseWideViewPort",
+            "why": "App 要能自己打開 wide viewport；值沒傳到 `WebSettings` 就改不了",
+            "lines": "+602..+607",
+            "status": "new",
+            "by": [
+              "setUseWideViewPort"
+            ]
+          }
+        ],
+        "cases": [
+          {
+            "test": "android_webview_controller_test.dart:292",
+            "covers": [
+              "AndroidWebViewController()"
+            ],
+            "given": "用 mock 的 `WebSettings` 建出 controller",
+            "when": "建構子設定 `WebSettings`",
+            "then": "`setUseWideViewPort(false)` 被呼叫一次"
+          },
+          {
+            "test": "setUseWideViewPort",
+            "covers": [
+              "setUseWideViewPort"
+            ],
+            "given": "用 mock 的 `WebView` 與 `WebSettings` 建出 controller",
+            "when": "呼叫 `setUseWideViewPort(true)`",
+            "then": "讀一次 `settings`，`setUseWideViewPort(true)` 被呼叫一次"
+          }
+        ]
+      }
+    }
+  ]
+}

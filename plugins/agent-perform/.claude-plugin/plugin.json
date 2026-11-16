@@ -1,0 +1,19 @@
+{
+  "name": "agent-perform",
+  "version": "2.0.1",
+  "description": "A Claude Mod above the Claude Code prompt that keeps your context spending in check and builds good habits: live context use, a Cache countdown, this turn's context growth, quota use, warning colours past thresholds, and one-click /clear, /compact and /recap once context passes 30%. Comes with a large local dashboard at localhost:8787 that drills into every conversation and turn to find where tokens were spent abnormally.",
+  "author": {
+    "name": "Phelix Chen"
+  },
+  "skills": [
+    "./skills/"
+  ],
+  "userConfig": {
+    "autoCompact": {
+      "type": "boolean",
+      "title": "Auto compact with recap after an idle hour",
+      "description": "When the context is at 60% or more and the session has been idle for an hour, run /recap and compact with it. Off by default.",
+      "default": false
+    }
+  }
+}

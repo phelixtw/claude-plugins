@@ -1,0 +1,390 @@
+{
+  "cards": [
+    {
+      "dot": "rose",
+      "items": [
+        "WebView 遇到可恢復的 **SSL 憑證錯誤**時，App 目前沒有辦法決定要中止還是繼續（commit message）。",
+        "platform interface 先定義共用的型別與 callback：**`PlatformSslAuthError`**（`proceed`／`cancel`）、**`X509Certificate`** 與 `setOnSSlAuthError`，各平台實作之後再補。",
+        "預設實作丟 `UnimplementedError`，還沒實作的平台會明確失敗。"
+      ],
+      "title": "這張 Story 的目的"
+    },
+    {
+      "dot": "amber",
+      "items": [
+        "[medium][code-review] 方法名稱是 `setOnSSlAuthError`（兩個大寫 S），和 typedef `SslAuthErrorCallback` 的大小寫不一致；這是公開 API，發佈後就難改，要現在修正嗎？（platform_navigation_delegate.dart:160, delegate-sslerr）",
+        "[low][code-review] 測試 callback 的參數名稱拼成 `eror`，改成 `error`（platform_navigation_delegate_test.dart:167）"
+      ],
+      "title": "待確認問題 / TODO"
+    }
+  ],
+  "changes": {
+    "commits": [
+      {
+        "sha": "3094f96130",
+        "subject": "[webview_flutter_platform_interface] Adds support to respond to recoverable SSL certificate errors (#9248)"
+      }
+    ],
+    "files": [
+      {
+        "additions": 4,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_platform_interface/CHANGELOG.md",
+        "status": "modified"
+      },
+      {
+        "additions": 19,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/platform_navigation_delegate.dart",
+        "status": "modified"
+      },
+      {
+        "additions": 41,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/platform_ssl_auth_error.dart",
+        "status": "added"
+      },
+      {
+        "additions": 1,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/types/types.dart",
+        "status": "modified"
+      },
+      {
+        "additions": 15,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/types/x509_certificate.dart",
+        "status": "added"
+      },
+      {
+        "additions": 1,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_platform_interface/lib/webview_flutter_platform_interface.dart",
+        "status": "modified"
+      },
+      {
+        "additions": 1,
+        "deletions": 1,
+        "path": "packages/webview_flutter/webview_flutter_platform_interface/pubspec.yaml",
+        "status": "modified"
+      }
+    ],
+    "tests": [
+      "packages/webview_flutter/webview_flutter_platform_interface/test/platform_navigation_delegate_test.dart"
+    ]
+  },
+  "components": [
+    {
+      "code": {
+        "brief": {
+          "role": "**`CHANGELOG.md`** 是套件的版本紀錄。",
+          "task": "新增 `2.13.0`：支援回應可恢復的 SSL 憑證錯誤。"
+        },
+        "files": [
+          {
+            "diff": "@@ -1,2 +1,6 @@\n+## 2.13.0\n+\n+* Adds support to respond to recoverable SSL certificate errors. See `PlatformNavigationDelegate.setOnSSlAuthError`.\n+\n ## 2.12.0\n ",
+            "path": "packages/webview_flutter/webview_flutter_platform_interface/CHANGELOG.md",
+            "summary": "新增 2.13.0 條目"
+          }
+        ]
+      },
+      "id": "changelog",
+      "label": "CHANGELOG.md",
+      "pos": [
+        20,
+        30
+      ],
+      "size": [
+        250,
+        78
+      ],
+      "sublabel": "2.13.0 條目",
+      "type": "external"
+    },
+    {
+      "code": {
+        "brief": {
+          "role": "**`pubspec.yaml`** 是套件的設定檔。",
+          "task": "`version` 從 `2.12.0` 改成 `2.13.0`。"
+        },
+        "files": [
+          {
+            "diff": "@@ -5,5 +5,5 @@ issue_tracker: https://github.com/flutter/flutter/issues?q=is%3Aissue+is%3Aopen+\n # NOTE: We strongly prefer non-breaking changes, even at the expense of a\n # less-clean API. See https://flutter.dev/go/platform-interface-breaking-changes\n-version: 2.12.0\n+version: 2.13.0\n \n environment:",
+            "path": "packages/webview_flutter/webview_flutter_platform_interface/pubspec.yaml",
+            "summary": "版本從 2.12.0 升到 2.13.0"
+          }
+        ]
+      },
+      "id": "pubspec",
+      "label": "pubspec.yaml",
+      "pos": [
+        20,
+        144
+      ],
+      "size": [
+        250,
+        78
+      ],
+      "sublabel": "version 2.13.0",
+      "type": "external"
+    },
+    {
+      "code": {
+        "brief": {
+          "role": "**`platform_navigation_delegate.dart`** 定義各平台 navigation delegate 必須提供的 callback 設定方法。",
+          "task": "新增 typedef `SslAuthErrorCallback` 與 `setOnSSlAuthError`，預設實作丟 `UnimplementedError`。"
+        },
+        "files": [
+          {
+            "path": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/platform_navigation_delegate.dart",
+            "summary": "新增 SslAuthErrorCallback 與 setOnSSlAuthError"
+          }
+        ]
+      },
+      "id": "delegate",
+      "label": "platform_navigation_delegate.dart",
+      "pos": [
+        480,
+        144
+      ],
+      "size": [
+        330,
+        78
+      ],
+      "sublabel": "setOnSSlAuthError",
+      "type": "backend"
+    },
+    {
+      "code": {
+        "brief": {
+          "role": "**`webview_flutter_platform_interface.dart`** 是套件的入口檔，決定哪些型別對外公開。",
+          "task": "新增 `export 'src/platform_ssl_auth_error.dart'`。"
+        },
+        "files": [
+          {
+            "path": "packages/webview_flutter/webview_flutter_platform_interface/lib/webview_flutter_platform_interface.dart",
+            "summary": "export platform_ssl_auth_error.dart"
+          }
+        ]
+      },
+      "id": "barrel",
+      "label": "webview_flutter_platform_interface.dart",
+      "pos": [
+        740,
+        30
+      ],
+      "size": [
+        410,
+        70
+      ],
+      "sublabel": "對外 export",
+      "type": "messagebus"
+    },
+    {
+      "code": {
+        "brief": {
+          "role": "**`platform_ssl_auth_error.dart`** 是新檔，定義 SSL 憑證錯誤物件。",
+          "task": "`PlatformSslAuthError` 帶 `certificate` 與 `description`，由各平台實作 `proceed` 與 `cancel`。"
+        },
+        "files": [
+          {
+            "diff": "@@ -0,0 +1,41 @@\n+// Copyright 2013 The Flutter Authors. All rights reserved.\n+// Use of this source code is governed by a BSD-style license that can be\n+// found in the LICENSE file.\n+\n+import 'package:flutter/foundation.dart';\n+\n+import 'types/types.dart';\n+\n+/// Represents an SSL error with the associated certificate.\n+///\n+/// The host application must call [cancel] or, contrary to secure web\n+/// communication standards, [proceed] to provide the web view's response to the\n+/// request. [proceed] should generally only be used in test environments, as\n+/// using it in production can expose users to security and privacy risks.\n+abstract class PlatformSslAuthError {\n+  /// Creates a [PlatformSslAuthError].\n+  @protected\n+  PlatformSslAuthError({required this.certificate, required this.description});\n+\n+  /// The certificate associated with this error.\n+  final X509Certificate? certificate;\n+\n+  /// A human-presentable description for a given error.\n+  final String description;\n+\n+  /// Instructs the WebView that encountered the SSL certificate error to ignore\n+  /// the error and continue communicating with the server.\n+  ///\n+  /// **Warning:** Warning: Calling [proceed] in a production environment is\n+  /// strongly discouraged, as an invalid SSL certificate means that the\n+  /// connection is not secure, so proceeding can expose users to security and\n+  /// privacy risks.\n+  Future<void> proceed();\n+\n+  /// Instructs the WebView that encountered the SSL certificate error to\n+  /// terminate communication with the server.\n+  ///\n+  /// The host application must call this method to prevent a resource from\n+  /// loading when an SSL certificate is invalid.\n+  Future<void> cancel();\n+}",
+            "path": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/platform_ssl_auth_error.dart",
+            "summary": "新檔：PlatformSslAuthError"
+          }
+        ]
+      },
+      "id": "sslerr",
+      "label": "platform_ssl_auth_error.dart",
+      "pos": [
+        880,
+        144
+      ],
+      "size": [
+        270,
+        78
+      ],
+      "sublabel": "proceed / cancel",
+      "type": "frontend"
+    },
+    {
+      "code": {
+        "brief": {
+          "role": "**`types.dart`** 把 `types/` 底下的型別集中 export。",
+          "task": "新增 `export 'x509_certificate.dart'`。"
+        },
+        "files": [
+          {
+            "diff": "@@ -26,2 +26,3 @@ export 'web_resource_response.dart';\n export 'webview_cookie.dart';\n export 'webview_credential.dart';\n+export 'x509_certificate.dart';",
+            "path": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/types/types.dart",
+            "summary": "export x509_certificate.dart"
+          }
+        ]
+      },
+      "id": "types",
+      "label": "types.dart",
+      "pos": [
+        480,
+        258
+      ],
+      "size": [
+        250,
+        78
+      ],
+      "sublabel": "export 型別",
+      "type": "messagebus"
+    },
+    {
+      "code": {
+        "brief": {
+          "role": "**`x509_certificate.dart`** 是新檔，定義 X.509 憑證資料。",
+          "task": "`X509Certificate` 是 `@immutable` 類別，只有一個 DER 格式的 `data` 欄位。"
+        },
+        "files": [
+          {
+            "path": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/types/x509_certificate.dart",
+            "summary": "新檔：X509Certificate"
+          }
+        ]
+      },
+      "id": "cert",
+      "label": "x509_certificate.dart",
+      "pos": [
+        880,
+        258
+      ],
+      "size": [
+        270,
+        78
+      ],
+      "sublabel": "X509Certificate",
+      "type": "database"
+    }
+  ],
+  "connections": [
+    {
+      "code": {
+        "diff": "@@ -7,4 +7,5 @@ import 'dart:async';\n import 'package:flutter/foundation.dart';\n import 'package:plugin_platform_interface/plugin_platform_interface.dart';\n+import 'platform_ssl_auth_error.dart';\n import 'types/types.dart';\n \n@@ -35,4 +36,11 @@ typedef UrlChangeCallback = void Function(UrlChange change);\n typedef HttpAuthRequestCallback = void Function(HttpAuthRequest request);\n \n+/// Signature for callbacks that notify the host application of an SSL\n+/// authentication error.\n+///\n+/// The host application must call either [PlatformSslAuthError.cancel] or\n+/// [PlatformSslAuthError.proceed].\n+typedef SslAuthErrorCallback = void Function(PlatformSslAuthError error);\n+\n /// An interface defining navigation events that occur on the native platform.\n ///\n@@ -144,3 +152,14 @@ abstract class PlatformNavigationDelegate extends PlatformInterface {\n     );\n   }\n+\n+  /// Invoked when the web view receives a recoverable SSL error for a\n+  /// certificate.\n+  ///\n+  /// The host application must call either [PlatformSslAuthError.cancel] or\n+  /// [PlatformSslAuthError.proceed].\n+  Future<void> setOnSSlAuthError(SslAuthErrorCallback onSslAuthError) {\n+    throw UnimplementedError(\n+      'setOnSSlAuthError is not implemented on the current platform.',\n+    );\n+  }\n }",
+        "from_symbol": "PlatformNavigationDelegate.setOnSSlAuthError",
+        "line": 155,
+        "note": "新增 SSL 錯誤 callback 的型別與設定方法。",
+        "path": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/platform_navigation_delegate.dart",
+        "story": "**navigation delegate** 像大樓的保全，遇到證件有問題的訪客（SSL 錯誤）就把訪客資料 `PlatformSslAuthError` 交給住戶的對講機 `SslAuthErrorCallback`，由住戶決定開門（`proceed`）或請回（`cancel`）。",
+        "tests": {
+          "cases": [
+            {
+              "covers": [
+                "setOnSSlAuthError"
+              ],
+              "given": "沒有覆寫的 `ExtendsPlatformNavigationDelegate`",
+              "test": "Default implementation of setOnSSlAuthError should throw unimplemented error",
+              "then": "丟出 `UnimplementedError`",
+              "when": "呼叫 `setOnSSlAuthError` 並傳入空 callback"
+            }
+          ],
+          "functions": [
+            {
+              "by": [
+                "Default implementation of setOnSSlAuthError should throw unimplemented error"
+              ],
+              "lines": "+155..+164",
+              "status": "new",
+              "symbol": "setOnSSlAuthError",
+              "why": "平台沒實作時要丟 `UnimplementedError`，App 才知道這個平台不支援 SSL 錯誤處理"
+            }
+          ]
+        },
+        "to_symbol": "PlatformSslAuthError"
+      },
+      "from": "delegate",
+      "id": "delegate-sslerr",
+      "label": "callback",
+      "to": "sslerr"
+    },
+    {
+      "code": {
+        "diff": "@@ -0,0 +1,15 @@\n+// Copyright 2013 The Flutter Authors. All rights reserved.\n+// Use of this source code is governed by a BSD-style license that can be\n+// found in the LICENSE file.\n+\n+import 'package:flutter/foundation.dart';\n+\n+/// Represents an X.509 certificate.\n+@immutable\n+class X509Certificate {\n+  /// Creates an [X509Certificate].\n+  const X509Certificate({this.data});\n+\n+  /// A DER representation of the certificate object.\n+  final Uint8List? data;\n+}",
+        "from_symbol": "PlatformSslAuthError.certificate",
+        "line": 7,
+        "note": "SSL 錯誤物件的 `certificate` 欄位使用新的 `X509Certificate`。",
+        "path": "packages/webview_flutter/webview_flutter_platform_interface/lib/src/types/x509_certificate.dart",
+        "story": "錯誤物件像一張退件單，上面附著出問題的證件影本 `X509Certificate`，再加一句說明 `description`。",
+        "tests": {
+          "functions": [
+            {
+              "by": [],
+              "lines": "+7..+15",
+              "status": "none",
+              "symbol": "X509Certificate",
+              "why": "SSL 錯誤靠它帶出出問題的憑證；`data` 要原樣保留 DER 內容，App 才拿得到正確憑證"
+            }
+          ],
+          "suggested": [
+            {
+              "covers": "X509Certificate",
+              "given": "一段 DER 格式的 `Uint8List`",
+              "then": "`data` 回傳同一個 `Uint8List`",
+              "when": "建立 `X509Certificate(data: bytes)`"
+            }
+          ]
+        },
+        "to_symbol": "X509Certificate"
+      },
+      "from": "sslerr",
+      "id": "sslerr-cert",
+      "label": "certificate",
+      "labelAt": [
+        1015,
+        240
+      ],
+      "to": "cert"
+    },
+    {
+      "code": {
+        "diff": "@@ -4,4 +4,5 @@\n \n export 'src/platform_navigation_delegate.dart';\n+export 'src/platform_ssl_auth_error.dart';\n export 'src/platform_webview_controller.dart';\n export 'src/platform_webview_cookie_manager.dart';",
+        "from_symbol": "webview_flutter_platform_interface.dart",
+        "line": 6,
+        "note": "入口檔新增 export。",
+        "path": "packages/webview_flutter/webview_flutter_platform_interface/lib/webview_flutter_platform_interface.dart",
+        "story": "入口檔像店門口的招牌，新增一行把 SSL 錯誤物件掛上去，外面的套件才能 import。",
+        "tests": {
+          "functions": [
+            {
+              "by": [],
+              "lines": "+6",
+              "status": "none",
+              "symbol": "export 'src/platform_ssl_auth_error.dart'",
+              "why": "少了這行 export，外部套件無法從入口檔使用 `PlatformSslAuthError`"
+            }
+          ],
+          "suggested": [
+            {
+              "covers": "export 'src/platform_ssl_auth_error.dart'",
+              "given": "只 import `webview_flutter_platform_interface.dart`",
+              "then": "不必 import `src/` 底下的檔案就能編譯",
+              "when": "使用 `PlatformSslAuthError` 型別"
+            }
+          ]
+        },
+        "to_symbol": "PlatformSslAuthError"
+      },
+      "from": "barrel",
+      "fromSide": "bottom",
+      "id": "barrel-sslerr",
+      "label": "export",
+      "labelAt": [
+        1040,
+        122
+      ],
+      "to": "sslerr",
+      "toSide": "top"
+    }
+  ],
+  "diagram_type": "architecture",
+  "meta": {
+    "locale": "zh-TW",
+    "quality_profile": "showcase",
+    "title": "PR-9248 platform interface 支援回應可恢復的 SSL 憑證錯誤"
+  },
+  "schema_version": 1
+}

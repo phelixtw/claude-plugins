@@ -1,0 +1,10 @@
+{
+  "name": "archify-review",
+  "version": "2.9.0",
+  "description": "Code review for a commit or a Jira ticket's commits as an explorable standalone HTML report: an architecture diagram of the change, net diffs per flow with each changed function's test coverage and Given/When/Then cases, reviewed checkboxes, Code Review / Security / Code Smell TODOs with copyable AI prompts, and copyable reference links. Based on the open-source archify.",
+  "author": {
+    "name": "Phelix Chen"
+  },
+  "license": "MIT",
+  "skills": ["./skills/"]
+}

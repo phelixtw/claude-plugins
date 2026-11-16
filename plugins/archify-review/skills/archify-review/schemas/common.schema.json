@@ -1,0 +1,390 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tt-a1i/archify/schemas/common.schema.json",
+  "title": "Archify Shared Definitions",
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$"
+    },
+    "locale": {
+      "enum": ["en", "zh-CN", "zh-TW"]
+    },
+    "animation": {
+      "enum": ["trace", "none"]
+    },
+    "qualityProfile": {
+      "enum": ["standard", "showcase"]
+    },
+    "side": {
+      "enum": ["left", "right", "top", "bottom"]
+    },
+    "relationshipWidth": {
+      "type": "number",
+      "minimum": 0.5
+    },
+    "point": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "number" },
+        { "type": "number" }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "componentType": {
+      "enum": ["frontend", "backend", "database", "cloud", "security", "messagebus", "external"]
+    },
+    "variant": {
+      "enum": ["default", "emphasis", "security", "dashed"]
+    },
+    "legendMode": {
+      "enum": ["auto", "all", "hidden"]
+    },
+    "legendEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "visible": { "type": "boolean" }
+      }
+    },
+    "changeSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["files"],
+      "properties": {
+        "repo": { "type": "string", "minLength": 1 },
+        "commits": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sha"],
+            "properties": {
+              "sha": { "type": "string", "minLength": 4, "maxLength": 64 },
+              "subject": { "type": "string" },
+              "new": { "type": "boolean" }
+            }
+          }
+        },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 200,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "status"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "status": { "enum": ["added", "modified", "deleted"] },
+              "additions": { "type": "integer", "minimum": 0 },
+              "deletions": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "tests": { "type": "array", "maxItems": 200, "items": { "type": "string", "minLength": 1 } },
+        "slice": { "$ref": "#/$defs/changeSlice" }
+      }
+    },
+    "changeSlice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report", "base", "head", "feature", "batch", "next"],
+      "properties": {
+        "report": { "type": "string", "pattern": "^[A-Z][A-Z0-9]*-\\d+$" },
+        "base": { "type": "string", "pattern": "^[0-9a-f]{40,64}$" },
+        "head": { "type": "string", "pattern": "^[0-9a-f]{40,64}$" },
+        "feature": { "type": "string", "minLength": 1 },
+        "batch": { "type": "integer", "minimum": 1 },
+        "next": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind", "files"],
+              "properties": {
+                "kind": { "const": "batch" },
+                "files": { "type": "integer", "minimum": 1 }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind", "name", "files"],
+              "properties": {
+                "kind": { "const": "feature" },
+                "name": { "type": "string", "minLength": 1 },
+                "files": { "type": "integer", "minimum": 1 }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "nodeRisk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["score", "callers", "untested", "tool"],
+      "properties": {
+        "score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "symbol": { "type": "string", "minLength": 1 },
+        "factors": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key", "score", "count"],
+            "properties": {
+              "key": { "enum": ["flows", "cross_community", "tests", "security", "callers", "churn"] },
+              "score": { "type": "number", "minimum": 0, "maximum": 1 },
+              "count": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "callers": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["file", "line"],
+            "properties": {
+              "file": { "type": "string", "minLength": 1 },
+              "line": { "type": "integer", "minimum": 1 },
+              "symbol": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "untested": { "type": "array", "maxItems": 12, "items": { "type": "string", "minLength": 1 } },
+        "tool": { "type": "string", "pattern": "^code-review-graph \\S+$" }
+      }
+    },
+    "nodeCode": {
+      "type": "object",
+      "additionalProperties": false,
+      "anyOf": [{ "properties": { "files": true }, "required": ["files"] }, { "properties": { "brief": true }, "required": ["brief"] }],
+      "properties": {
+        "commit": { "type": "string", "minLength": 4, "maxLength": 64 },
+        "risk": { "$ref": "#/$defs/nodeRisk" },
+        "layers": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mvvm": { "enum": ["view", "viewmodel", "model"] },
+            "flutter": { "enum": ["ui", "logic", "data"] },
+            "webview": { "enum": ["host", "bridge", "content"] }
+          }
+        },
+        "brief": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["role", "task"],
+          "properties": {
+            "role": { "type": "string", "minLength": 1 },
+            "task": { "type": "string", "minLength": 1 },
+            "concepts": {
+              "type": "array",
+              "maxItems": 6,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["term", "text"],
+                "properties": {
+                  "term": { "type": "string", "minLength": 1 },
+                  "text": { "type": "string", "minLength": 1 }
+                }
+              }
+            }
+          }
+        },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "summary"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "lines": { "type": "string", "pattern": "^[0-9]+(-[0-9]+)?(, ?[0-9]+(-[0-9]+)?)*$" },
+              "symbols": { "type": "array", "maxItems": 12, "items": { "type": "string", "minLength": 1 } },
+              "summary": { "type": "string", "minLength": 1 },
+              "before": { "type": "string" },
+              "after": { "type": "string" },
+              "diff": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "codeExcerpts": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "start", "lines"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "start": { "type": "integer", "minimum": 1 },
+          "lines": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 200,
+            "items": {
+              "anyOf": [
+                { "type": "string" },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["skip"],
+                  "properties": { "skip": { "type": "integer", "minimum": 1 } }
+                }
+              ]
+            }
+          },
+          "marks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["line", "step"],
+              "properties": {
+                "line": { "type": "integer", "minimum": 1 },
+                "step": { "type": "integer", "minimum": 1 },
+                "note": { "type": "string" }
+              }
+            }
+          },
+          "added": { "type": "array", "items": { "type": "integer", "minimum": 1 } },
+          "removed": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["after", "text"],
+              "properties": {
+                "after": { "type": "integer", "minimum": 0 },
+                "text": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "relationshipCode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from_symbol", "to_symbol"],
+      "properties": {
+        "from_symbol": { "type": "string", "minLength": 1 },
+        "to_symbol": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "line": { "type": "integer", "minimum": 1 },
+        "note": { "type": "string" },
+        "action": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "story": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "diff": { "type": "string" },
+        "tests": { "$ref": "#/$defs/hopTests" },
+        "excerpts": { "$ref": "#/$defs/codeExcerpts" },
+        "variants": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["via"],
+            "properties": {
+              "via": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+              "action": { "type": "string", "minLength": 1, "maxLength": 80 },
+              "diff": { "type": "string" },
+              "excerpts": { "$ref": "#/$defs/codeExcerpts" },
+              "note": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "hopTests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["functions"],
+      "properties": {
+        "functions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["symbol", "lines", "status", "by", "why"],
+            "properties": {
+              "symbol": { "type": "string", "minLength": 1 },
+              "why": { "type": "string", "minLength": 1 },
+              "lines": { "type": "string", "pattern": "^[+-]\\d+(\\.\\.[+-]?\\d+)?(,[+-]\\d+(\\.\\.[+-]?\\d+)?)*$" },
+              "hunk": { "oneOf": [
+                { "type": "integer", "minimum": 1 },
+                { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 1 } }
+              ] },
+              "status": { "enum": ["new", "existing", "none", "removed"] },
+              "by": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+              "via": { "type": "string", "minLength": 1, "maxLength": 120 }
+            }
+          }
+        },
+        "cases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["test", "covers", "given", "when", "then"],
+            "properties": {
+              "test": { "type": "string", "minLength": 1 },
+              "covers": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+              "given": { "type": "string" },
+              "when": { "type": "string" },
+              "then": { "type": "string" }
+            }
+          }
+        },
+        "suggested": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["covers", "given", "when", "then"],
+            "properties": {
+              "covers": { "type": "string", "minLength": 1 },
+              "given": { "type": "string" },
+              "when": { "type": "string" },
+              "then": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "cards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["dot", "title", "items"],
+        "properties": {
+          "dot": { "enum": ["cyan", "emerald", "violet", "amber", "rose", "orange", "slate"] },
+          "title": { "type": "string", "minLength": 1 },
+          "items": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

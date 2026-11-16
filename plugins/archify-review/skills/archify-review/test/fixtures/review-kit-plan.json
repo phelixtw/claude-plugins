@@ -1,0 +1,210 @@
+{
+  "meta": {
+    "title": "PR-11122 範例 App 改用 network security config",
+    "locale": "zh-TW",
+    "quality_profile": "showcase",
+    "platform": "app"
+  },
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "這張 Story 的目的",
+      "items": [
+        "範例 App 的 debug 與 main manifest 拿掉 `android:usesCleartextTraffic`，改用 `network_security_config.xml` 允許明文流量（commit message）。"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "待確認問題 / TODO",
+      "items": [
+        "[low][security-review] 審查的 hunk 沒有發現問題"
+      ]
+    }
+  ],
+  "components": [
+    {
+      "id": "dbg",
+      "type": "frontend",
+      "label": "AndroidManifest.xml",
+      "layers": {
+        "mvvm": "model"
+      },
+      "pos": [
+        20,
+        30
+      ],
+      "size": [
+        260,
+        70
+      ],
+      "files": [
+        {
+          "path": "packages/webview_flutter/webview_flutter_android/example/android/app/src/debug/AndroidManifest.xml",
+          "summary": "改用 networkSecurityConfig"
+        }
+      ],
+      "sublabel": "debug"
+    },
+    {
+      "id": "dbgnsc",
+      "type": "frontend",
+      "label": "network_security_config.xml",
+      "sublabel": "debug",
+      "layers": {
+        "mvvm": "model"
+      },
+      "pos": [
+        460,
+        30
+      ],
+      "size": [
+        280,
+        70
+      ],
+      "files": [
+        {
+          "path": "packages/webview_flutter/webview_flutter_android/example/android/app/src/debug/res/xml/network_security_config.xml",
+          "summary": "新檔：允許明文流量",
+          "hunks": "all"
+        }
+      ]
+    },
+    {
+      "id": "main",
+      "type": "frontend",
+      "label": "AndroidManifest.xml",
+      "layers": {
+        "mvvm": "model"
+      },
+      "pos": [
+        20,
+        144
+      ],
+      "size": [
+        260,
+        70
+      ],
+      "files": [
+        {
+          "path": "packages/webview_flutter/webview_flutter_android/example/android/app/src/main/AndroidManifest.xml",
+          "summary": "改用 networkSecurityConfig"
+        }
+      ],
+      "sublabel": "main"
+    },
+    {
+      "id": "mainnsc",
+      "type": "frontend",
+      "label": "network_security_config.xml",
+      "sublabel": "main",
+      "layers": {
+        "mvvm": "model"
+      },
+      "pos": [
+        460,
+        144
+      ],
+      "size": [
+        280,
+        70
+      ],
+      "files": [
+        {
+          "path": "packages/webview_flutter/webview_flutter_android/example/android/app/src/main/res/xml/network_security_config.xml",
+          "summary": "新檔：允許明文流量",
+          "hunks": "all"
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "dbg-dbgnsc",
+      "from": "dbg",
+      "to": "dbgnsc",
+      "label": "@xml/network…",
+      "file": "packages/webview_flutter/webview_flutter_android/example/android/app/src/debug/AndroidManifest.xml",
+      "from_symbol": "application",
+      "to_symbol": "network-security-config",
+      "story": "debug manifest 不再直接寫明文開關，改指向一份網路設定檔。",
+      "tests": {
+        "functions": [
+          {
+            "symbol": "<application android:networkSecurityConfig>",
+            "why": "debug 版改由 `network_security_config` 決定能否走明文 HTTP；設錯 WebView 就載不了 `http://` 頁面",
+            "lines": "-7,+7",
+            "hunk": 1,
+            "status": "none",
+            "by": []
+          },
+          {
+            "symbol": "<meta-data io.flutter.network-policy>",
+            "why": "Flutter 讀這份 `network_security_config` 當 network policy；少了它，Dart 端不套用這份明文設定",
+            "lines": "+24..+25",
+            "hunk": 2,
+            "status": "none",
+            "by": []
+          }
+        ],
+        "suggested": [
+          {
+            "covers": "<application android:networkSecurityConfig>",
+            "given": "debug 版範例 App 已安裝",
+            "when": "WebView 載入 `http://` 網址",
+            "then": "頁面照常載入，沒有 cleartext 錯誤"
+          },
+          {
+            "covers": "<meta-data io.flutter.network-policy>",
+            "given": "debug 版範例 App 啟動",
+            "when": "Flutter 讀取 network policy",
+            "then": "採用 `@xml/network_security_config`"
+          }
+        ]
+      }
+    },
+    {
+      "id": "main-mainnsc",
+      "from": "main",
+      "to": "mainnsc",
+      "label": "@xml/network…",
+      "file": "packages/webview_flutter/webview_flutter_android/example/android/app/src/main/AndroidManifest.xml",
+      "from_symbol": "application",
+      "to_symbol": "network-security-config",
+      "story": "main manifest 也改指向網路設定檔。",
+      "tests": {
+        "functions": [
+          {
+            "symbol": "<application android:networkSecurityConfig>",
+            "why": "main 版改由 `network_security_config` 決定能否走明文 HTTP；設錯 WebView 就載不了 `http://` 頁面",
+            "lines": "-7,-8,+7",
+            "hunk": 1,
+            "status": "none",
+            "by": []
+          },
+          {
+            "symbol": "<meta-data io.flutter.network-policy>",
+            "why": "Flutter 讀這份 `network_security_config` 當 network policy；少了它，Dart 端不套用這份明文設定",
+            "lines": "+13..+15",
+            "hunk": 2,
+            "status": "none",
+            "by": []
+          }
+        ],
+        "suggested": [
+          {
+            "covers": "<application android:networkSecurityConfig>",
+            "given": "main 版範例 App 已安裝",
+            "when": "WebView 載入 `http://` 網址",
+            "then": "頁面照常載入，沒有 cleartext 錯誤"
+          },
+          {
+            "covers": "<meta-data io.flutter.network-policy>",
+            "given": "main 版範例 App 啟動",
+            "when": "Flutter 讀取 network policy",
+            "then": "採用 `@xml/network_security_config`"
+          }
+        ]
+      }
+    }
+  ]
+}

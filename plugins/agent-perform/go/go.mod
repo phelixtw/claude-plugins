@@ -1,0 +1,11 @@
+module agentperform
+
+go 1.27
+
+require (
+	github.com/dlclark/regexp2 v1.12.0
+	github.com/pkoukk/tiktoken-go v0.1.8
+	github.com/pkoukk/tiktoken-go-loader v0.0.2
+)
+
+require github.com/google/uuid v1.3.0 // indirect

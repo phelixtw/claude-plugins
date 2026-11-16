@@ -1,0 +1,40 @@
+{
+  "name": "phelix-plugins",
+  "owner": {
+    "name": "Phelix Chen"
+  },
+  "metadata": {
+    "description": "Phelix Chen's Claude Code plugins",
+    "version": "1.0.0",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "agent-perform",
+      "source": "./plugins/agent-perform",
+      "description": "A Claude Mod above the Claude Code prompt that keeps your context spending in check and builds good habits: live context use, a Cache countdown, this turn's context growth, quota use, warning colours past thresholds, and one-click /clear, /compact and /recap once context passes 30%. Comes with a large local dashboard at localhost:8787 that drills into every conversation and turn to find where tokens were spent abnormally.",
+      "version": "2.0.1",
+      "keywords": [
+        "agent-perform",
+        "claude-mod",
+        "context",
+        "cost",
+        "dashboard"
+      ],
+      "category": "devtools"
+    },
+    {
+      "name": "archify-review",
+      "source": "./plugins/archify-review",
+      "description": "Code review for a commit or a Jira ticket's commits as an explorable standalone HTML report: an architecture diagram of the change, net diffs per flow with each changed function's test coverage and Given/When/Then cases, reviewed checkboxes, Code Review / Security / Code Smell TODOs with copyable AI prompts, and copyable reference links. Based on the open-source archify.",
+      "version": "2.9.0",
+      "keywords": [
+        "code-review",
+        "architecture",
+        "jira",
+        "html-report"
+      ],
+      "category": "devtools"
+    }
+  ]
+}

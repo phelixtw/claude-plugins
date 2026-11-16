@@ -1,0 +1,282 @@
+{
+  "components": [
+    {
+      "code": {
+        "layers": {
+          "mvvm": "viewmodel",
+          "flutter": "logic"
+        },
+        "brief": {
+          "role": "r",
+          "task": "t"
+        }
+      },
+      "id": "registry",
+      "label": "SessionOwnerRegistryHolder",
+      "pos": [
+        30,
+        40
+      ],
+      "size": [
+        270,
+        70
+      ],
+      "sublabel": "未改動 · 觸發重新排程",
+      "type": "backend"
+    },
+    {
+      "code": {
+        "layers": {
+          "mvvm": "viewmodel",
+          "flutter": "logic"
+        },
+        "brief": {
+          "role": "r",
+          "task": "t"
+        }
+      },
+      "id": "handoff",
+      "label": "session_handoff_router.dart",
+      "pos": [
+        380,
+        40
+      ],
+      "size": [
+        259,
+        70
+      ],
+      "sublabel": "排程時讀 flag",
+      "type": "backend"
+    },
+    {
+      "code": {
+        "layers": {
+          "mvvm": "view",
+          "flutter": "ui"
+        },
+        "brief": {
+          "role": "r",
+          "task": "t"
+        }
+      },
+      "id": "channel",
+      "label": "platform_window_bridge_channel.dart",
+      "pos": [
+        780,
+        40
+      ],
+      "size": [
+        322,
+        70
+      ],
+      "sublabel": "MethodChannel 參數",
+      "type": "frontend"
+    },
+    {
+      "code": {
+        "layers": {
+          "mvvm": "model",
+          "flutter": "data"
+        },
+        "brief": {
+          "role": "r",
+          "task": "t"
+        }
+      },
+      "id": "storage",
+      "label": "app_storage.dart",
+      "pos": [
+        380,
+        154
+      ],
+      "size": [
+        259,
+        70
+      ],
+      "sublabel": "新 key 常數",
+      "type": "database"
+    },
+    {
+      "code": {
+        "layers": {
+          "mvvm": "viewmodel",
+          "flutter": "logic"
+        },
+        "brief": {
+          "role": "r",
+          "task": "t"
+        }
+      },
+      "id": "plugin",
+      "label": "PlatformWindowBridgePlugin.kt",
+      "pos": [
+        780,
+        154
+      ],
+      "size": [
+        268,
+        70
+      ],
+      "sublabel": "存參數、回報事件",
+      "type": "backend"
+    },
+    {
+      "code": {
+        "layers": {
+          "mvvm": "view",
+          "flutter": "ui"
+        },
+        "brief": {
+          "role": "r",
+          "task": "t"
+        }
+      },
+      "id": "superdev",
+      "label": "developer_settings_feature_list.dart",
+      "pos": [
+        30,
+        268
+      ],
+      "size": [
+        313,
+        70
+      ],
+      "sublabel": "clear storage",
+      "type": "frontend"
+    },
+    {
+      "code": {
+        "layers": {
+          "mvvm": "view",
+          "flutter": "ui"
+        },
+        "brief": {
+          "role": "r",
+          "task": "t"
+        }
+      },
+      "id": "entry",
+      "label": "window_overlay_entry.dart",
+      "pos": [
+        380,
+        268
+      ],
+      "size": [
+        259,
+        70
+      ],
+      "sublabel": "收到事件寫 flag",
+      "type": "frontend"
+    },
+    {
+      "code": {
+        "layers": {
+          "mvvm": "view",
+          "flutter": "ui"
+        },
+        "brief": {
+          "role": "r",
+          "task": "t"
+        }
+      },
+      "id": "overlay",
+      "label": "PlatformWindowView.kt",
+      "pos": [
+        780,
+        268
+      ],
+      "size": [
+        214,
+        70
+      ],
+      "sublabel": "工具列初始狀態",
+      "type": "frontend"
+    }
+  ],
+  "connections": [
+    {
+      "from": "registry",
+      "id": "registry-handoff",
+      "label": "重新布防",
+      "to": "handoff"
+    },
+    {
+      "from": "handoff",
+      "id": "handoff-channel",
+      "label": "isToolbarExpanded",
+      "to": "channel"
+    },
+    {
+      "from": "channel",
+      "fromSide": "bottom",
+      "id": "channel-plugin",
+      "label": "toolbarExpanded",
+      "to": "plugin",
+      "toSide": "top"
+    },
+    {
+      "from": "plugin",
+      "fromSide": "bottom",
+      "id": "plugin-overlay",
+      "label": "show(isToolbarExpanded)",
+      "to": "overlay",
+      "toSide": "top"
+    },
+    {
+      "from": "plugin",
+      "id": "plugin-entry",
+      "label": "toolbar_used 事件",
+      "to": "entry"
+    },
+    {
+      "from": "handoff",
+      "fromSide": "bottom",
+      "id": "handoff-storage",
+      "label": "讀 flag",
+      "labelAt": [
+        509.5,
+        132
+      ],
+      "to": "storage",
+      "toSide": "top"
+    },
+    {
+      "from": "entry",
+      "fromSide": "top",
+      "id": "entry-storage",
+      "label": "寫 flag",
+      "to": "storage",
+      "toSide": "bottom"
+    },
+    {
+      "from": "superdev",
+      "id": "superdev-storage",
+      "label": "清除 key",
+      "to": "storage"
+    },
+    {
+      "from": "handoff",
+      "id": "handoff-plugin",
+      "label": "extra edge",
+      "to": "plugin"
+    }
+  ],
+  "diagram_type": "architecture",
+  "meta": {
+    "platform": "app",
+    "framework": "flutter",
+    "locale": "zh-TW",
+    "quality_profile": "showcase",
+    "title": "PROJ-3 視窗工具列首次使用後預設收合"
+  },
+  "schema_version": 1,
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "Story purpose",
+      "items": [
+        "x"
+      ]
+    }
+  ]
+}

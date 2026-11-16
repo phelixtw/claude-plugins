@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": { "title": "PROJ-1 tiers", "locale": "en", "platform": "app", "framework": "flutter" },
+  "components": [
+    { "id": "screen", "type": "frontend", "label": "screen.dart", "pos": [40, 40], "size": [200, 70], "code": { "layers": {"mvvm": "view", "flutter": "ui"}, "brief": { "role": "screen", "task": "shows" } } },
+    { "id": "coord", "type": "backend", "label": "coordinator.dart", "pos": [300, 40], "size": [200, 70], "code": { "layers": {"mvvm": "viewmodel", "flutter": "logic"}, "brief": { "role": "coordinator", "task": "wires" } } },
+    { "id": "store", "type": "database", "label": "store.dart", "pos": [560, 40], "size": [200, 70], "code": { "layers": {"mvvm": "model", "flutter": "data"}, "brief": { "role": "store", "task": "keeps" } } }
+  ],
+  "connections": [
+    { "id": "screen-coord", "from": "screen", "to": "coord", "label": "calls" },
+    { "id": "coord-store", "from": "coord", "to": "store", "label": "reads" }
+  ],
+  "changes": { "files": [{ "path": "a.dart", "status": "modified" }] }
+}

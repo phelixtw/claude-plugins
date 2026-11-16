@@ -1,0 +1,626 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "PR-10922 overlapping components",
+    "locale": "zh-TW",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1150,
+      720
+    ]
+  },
+  "components": [
+    {
+      "code": {
+        "brief": {
+          "role": "**`CHANGELOG.md`** 是 `webview_flutter_wkwebview` 套件的版本紀錄。",
+          "task": "最上方新增 `3.23.7`，寫明修正「重複呼叫 `setOnConsoleMessage` 會當掉」。"
+        },
+        "files": [
+          {
+            "diff": "@@ -1,2 +1,6 @@\n+## 3.23.7\n+\n+* Fixes crash when calling setOnConsoleMessage multiple times.\n+\n ## 3.23.6\n ",
+            "path": "packages/webview_flutter/webview_flutter_wkwebview/CHANGELOG.md",
+            "summary": "新增 3.23.7 條目：修正重複呼叫 setOnConsoleMessage 的當機"
+          }
+        ]
+      },
+      "id": "achangelog",
+      "label": "CHANGELOG.md",
+      "pos": [
+        300,
+        300
+      ],
+      "size": [
+        210,
+        64
+      ],
+      "sublabel": "3.23.7 條目",
+      "type": "frontend"
+    },
+    {
+      "code": {
+        "brief": {
+          "role": "**`main.dart`** 是 `webview_flutter_wkwebview` 的範例 App，右上選單的每個項目示範一個 WebView 功能。",
+          "task": "這次沒有改動。選單的「Log example」會呼叫 `_onLogExample`，它每次都呼叫 `setOnConsoleMessage` 再載入 `kLogExamplePage`，所以點第二次就會走到這次修的路徑。"
+        }
+      },
+      "id": "amenu",
+      "label": "main.dart",
+      "pos": [
+        300,
+        300
+      ],
+      "size": [
+        210,
+        64
+      ],
+      "sublabel": "_onLogExample（未改動）",
+      "type": "frontend"
+    },
+    {
+      "code": {
+        "brief": {
+          "role": "**`pubspec.yaml`** 是套件的設定檔，記錄名稱、版本與相依套件。",
+          "task": "`version` 從 `3.23.6` 改成 `3.23.7`，和 CHANGELOG 的新條目對應。"
+        },
+        "files": [
+          {
+            "diff": "@@ -3,5 +3,5 @@ description: A Flutter plugin that provides a WebView widget based on Apple's WK\n repository: https://github.com/flutter/packages/tree/main/packages/webview_flutter/webview_flutter_wkwebview\n issue_tracker: https://github.com/flutter/flutter/issues?q=is%3Aissue+is%3Aopen+label%3A%22p%3A+webview%22\n-version: 3.23.6\n+version: 3.23.7\n \n environment:",
+            "path": "packages/webview_flutter/webview_flutter_wkwebview/pubspec.yaml",
+            "summary": "版本從 3.23.6 升到 3.23.7"
+          }
+        ]
+      },
+      "id": "apubspec",
+      "label": "pubspec.yaml",
+      "pos": [
+        300,
+        300
+      ],
+      "size": [
+        210,
+        64
+      ],
+      "sublabel": "version 3.23.7",
+      "type": "frontend"
+    },
+    {
+      "code": {
+        "brief": {
+          "concepts": [
+            {
+              "term": "JavaScript channel",
+              "text": "WebView 外掛提供的名稱通道：網頁用這個名字送訊息，App 端用同一個名字收訊息。同一個名字只能註冊一次。"
+            },
+            {
+              "term": "WKScriptMessageHandler",
+              "text": "WebKit 收網頁訊息的介面，網頁呼叫 `window.webkit.messageHandlers.<name>.postMessage(...)` 時，App 端對應名字的 handler 會收到。"
+            },
+            {
+              "term": "未 await 的 Future",
+              "text": "Dart 裡沒有被 `await` 的 `Future` 若失敗，錯誤不會回到呼叫端，而是變成未處理的非同步例外。"
+            }
+          ],
+          "role": "**`webkit_webview_controller.dart`** 是 iOS／macOS 版 WebView 的 controller，把 Flutter 端的呼叫轉成 `WKWebView` 的操作。",
+          "task": "`setOnConsoleMessage` 先存下 callback，再檢查 `_javaScriptChannelParams` 是否已有 console channel；有就直接 return，沒有才建立 channel 並 `await addJavaScriptChannel`，最後注入改寫 `console.log` 的腳本。"
+        },
+        "files": [
+          {
+            "diff": "@@ -295,4 +295,6 @@ class WebKitWebViewController extends PlatformWebViewController {\n   }\n \n+  static const String _onConsoleMessageChannelName = 'fltConsoleMessage';\n+\n   /// The WebKit WebView being controlled.\n   late final PlatformWebView _webView = PlatformWebView(\n@@ -701,9 +703,14 @@ class WebKitWebViewController extends PlatformWebViewController {\n   Future<void> setOnConsoleMessage(\n     void Function(JavaScriptConsoleMessage consoleMessage) onConsoleMessage,\n-  ) {\n+  ) async {\n     _onConsoleMessageCallback = onConsoleMessage;\n \n+    // If channel name is already present, the callback is already registered.\n+    if (_javaScriptChannelParams.containsKey(_onConsoleMessageChannelName)) {\n+      return;\n+    }\n+\n     final JavaScriptChannelParams channelParams = WebKitJavaScriptChannelParams(\n-      name: 'fltConsoleMessage',\n+      name: _onConsoleMessageChannelName,\n       onMessageReceived: (JavaScriptMessage message) {\n         if (_onConsoleMessageCallback == null) {\n@@ -737,5 +744,5 @@ class WebKitWebViewController extends PlatformWebViewController {\n     );\n \n-    addJavaScriptChannel(channelParams);\n+    await addJavaScriptChannel(channelParams);\n     return _injectConsoleOverride();\n   }\n@@ -904,5 +911,6 @@ class WebKitWebViewController extends PlatformWebViewController {\n     // removeCyclicObject method is passed in to solve the error.\n     final overrideScript = WKUserScript(\n-      source: '''\n+      source:\n+          '''\n var _flutter_webview_plugin_overrides = _flutter_webview_plugin_overrides || {\n   removeCyclicObject: function() {\n@@ -933,5 +941,5 @@ var _flutter_webview_plugin_overrides = _flutter_webview_plugin_overrides || {\n     };\n \n-    window.webkit.messageHandlers.fltConsoleMessage.postMessage(JSON.stringify(log));\n+    window.webkit.messageHandlers.$_onConsoleMessageChannelName.postMessage(JSON.stringify(log));\n   }\n };",
+            "path": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+            "summary": "channel 已註冊時不再重複註冊；channel 名稱改用常數；addJavaScriptChannel 改為 await"
+          }
+        ]
+      },
+      "id": "actrl",
+      "label": "webkit_webview_controller.dart",
+      "pos": [
+        300,
+        300
+      ],
+      "size": [
+        220,
+        300
+      ],
+      "sublabel": "setOnConsoleMessage",
+      "type": "frontend"
+    },
+    {
+      "code": {
+        "brief": {
+          "role": "**`WKUserContentController`** 是 WebKit 管理注入腳本與 script message handler 的物件。",
+          "task": "這次沒有改動。`addJavaScriptChannel` 會向它加入一個 user script 與一個同名的 script message handler。"
+        }
+      },
+      "id": "aucc",
+      "label": "WKUserContentController",
+      "pos": [
+        300,
+        300
+      ],
+      "size": [
+        210,
+        64
+      ],
+      "sublabel": "message handler（未改動）",
+      "type": "frontend"
+    },
+    {
+      "code": {
+        "brief": {
+          "role": "**網頁 console** 指 WebView 裡網頁執行的 `console.log`、`console.warn` 等方法。",
+          "task": "這次沒有改動網頁本身。controller 注入的腳本會把這些方法改寫成把訊息 `postMessage` 給 App。"
+        }
+      },
+      "id": "apage",
+      "label": "網頁 console",
+      "pos": [
+        300,
+        300
+      ],
+      "size": [
+        210,
+        64
+      ],
+      "sublabel": "被改寫的 console.log（未改動）",
+      "type": "frontend"
+    },
+    {
+      "code": {
+        "brief": {
+          "role": "**`webkit_webview_controller_test.dart`** 是 [ctrl](#node:ctrl) 的單元測試，用 mock 的 WebKit 物件驗證 controller 的行為。",
+          "task": "新增一個測試：連續呼叫兩次 `setOnConsoleMessage`，並驗證沒有對 `fltConsoleMessage` 呼叫 `removeScriptMessageHandler`。"
+        },
+        "files": [
+          {
+            "path": "packages/webview_flutter/webview_flutter_wkwebview/test/webkit_webview_controller_test.dart",
+            "summary": "新增測試：setOnConsoleMessage 呼叫兩次不丟例外"
+          }
+        ]
+      },
+      "id": "actrltest",
+      "label": "webkit_webview_controller_test.dart",
+      "pos": [
+        300,
+        300
+      ],
+      "size": [
+        210,
+        64
+      ],
+      "sublabel": "呼叫兩次不丟例外",
+      "type": "frontend"
+    },
+    {
+      "code": {
+        "brief": {
+          "role": "**`CHANGELOG.md`** 是 `webview_flutter_android` 套件的版本紀錄。",
+          "task": "新增 `4.6.0`：可以設定 wide viewport，且 `WebSettings.setUseWideViewPort` 的預設改成 `false`。"
+        },
+        "files": [
+          {
+            "diff": "@@ -1,2 +1,7 @@\n+## 4.6.0\n+\n+* Adds support to set using wide view port. See `AndroidWebViewController.setUseWideViewPort`.\n+* Changes default of `WebSettings.setUseWideViewPort` to `false` to align with native WebViews.\n+\n ## 4.5.0\n ",
+            "path": "packages/webview_flutter/webview_flutter_android/CHANGELOG.md",
+            "summary": "新增 4.6.0 條目：新 API 與預設值改變"
+          }
+        ]
+      },
+      "id": "bchangelog",
+      "label": "CHANGELOG.md",
+      "pos": [
+        300,
+        300
+      ],
+      "size": [
+        210,
+        64
+      ],
+      "sublabel": "4.6.0 條目",
+      "type": "frontend"
+    },
+    {
+      "code": {
+        "brief": {
+          "concepts": [
+            {
+              "term": "viewport meta",
+              "text": "網頁用 `<meta name=\"viewport\" content=\"width=...\">` 告訴瀏覽器要用多寬的版面排版，再縮放到螢幕大小。"
+            },
+            {
+              "term": "PopupMenuButton",
+              "text": "Flutter 的彈出選單元件，使用者選一個項目時會以該項目的 `value` 呼叫 `onSelected`。"
+            }
+          ],
+          "role": "**`main.dart`** 是 `webview_flutter_android` 的範例 App，右上選單 `SampleMenu` 的每個項目示範一個 WebView 功能。",
+          "task": "新增網頁字串 `kViewportMetaPage`、選單項目 `MenuOptions.viewportMeta` 與 `_onViewportMetaExample`，點選後用 `loadHtmlString` 載入這個網頁。"
+        },
+        "files": [
+          {
+            "path": "packages/webview_flutter/webview_flutter_android/example/lib/main.dart",
+            "summary": "選單新增 Viewport meta example，載入帶 viewport meta 的網頁"
+          }
+        ]
+      },
+      "id": "bmenu",
+      "label": "main.dart",
+      "pos": [
+        300,
+        300
+      ],
+      "size": [
+        210,
+        64
+      ],
+      "sublabel": "範例 App · Viewport meta example",
+      "type": "frontend"
+    },
+    {
+      "code": {
+        "brief": {
+          "role": "**`pubspec.yaml`** 是套件的設定檔，記錄名稱、版本與相依套件。",
+          "task": "`version` 從 `4.5.0` 改成 `4.6.0`，和 CHANGELOG 的新條目對應。"
+        },
+        "files": [
+          {
+            "diff": "@@ -3,5 +3,5 @@ description: A Flutter plugin that provides a WebView widget on Android.\n repository: https://github.com/flutter/packages/tree/main/packages/webview_flutter/webview_flutter_android\n issue_tracker: https://github.com/flutter/flutter/issues?q=is%3Aissue+is%3Aopen+label%3A%22p%3A+webview%22\n-version: 4.5.0\n+version: 4.6.0\n \n environment:",
+            "path": "packages/webview_flutter/webview_flutter_android/pubspec.yaml",
+            "summary": "版本從 4.5.0 升到 4.6.0"
+          }
+        ]
+      },
+      "id": "bpubspec",
+      "label": "pubspec.yaml",
+      "pos": [
+        300,
+        300
+      ],
+      "size": [
+        210,
+        64
+      ],
+      "sublabel": "version 4.6.0",
+      "type": "frontend"
+    },
+    {
+      "code": {
+        "brief": {
+          "concepts": [
+            {
+              "term": "WebSettings.setUseWideViewPort",
+              "text": "Android `WebSettings` 的設定：開啟時 WebView 支援 viewport meta，沒有 meta 的網頁會用寬版面排版；關閉時版面寬度等於 WebView 的寬度。"
+            },
+            {
+              "term": "setLoadWithOverviewMode",
+              "text": "開啟時 WebView 會把網頁縮小到內容寬度剛好塞進畫面，常和 wide viewport 一起使用。"
+            }
+          ],
+          "role": "**`android_webview_controller.dart`** 是 Android 版 WebView 的 controller，把 Flutter 端的設定轉給原生 `WebView` 與它的 `WebSettings`。",
+          "task": "建構子裡的 `setUseWideViewPort(true)` 改成 `false`，並新增公開方法 `setUseWideViewPort(bool use)`，直接轉呼叫 `_webView.settings.setUseWideViewPort(use)`。"
+        },
+        "files": [
+          {
+            "path": "packages/webview_flutter/webview_flutter_android/lib/src/android_webview_controller.dart",
+            "summary": "預設 wide viewport 改為 false；新增 setUseWideViewPort"
+          }
+        ]
+      },
+      "id": "bctrl",
+      "label": "android_webview_controller.dart",
+      "pos": [
+        300,
+        300
+      ],
+      "size": [
+        210,
+        64
+      ],
+      "sublabel": "setUseWideViewPort",
+      "type": "frontend"
+    },
+    {
+      "code": {
+        "brief": {
+          "role": "**`WebSettings`** 是 Android 原生 WebView 的設定物件，Dart 端透過 `android_webkit.g.dart` 產生的 proxy 呼叫它。",
+          "task": "這次沒有改動。`setUseWideViewPort` 在產生的 proxy 裡已經存在（`android_webkit.g.dart:2648`），這次只是讓 controller 對外開放。"
+        }
+      },
+      "id": "bsettings",
+      "label": "WebSettings",
+      "pos": [
+        300,
+        300
+      ],
+      "size": [
+        210,
+        64
+      ],
+      "sublabel": "原生設定（未改動）",
+      "type": "frontend"
+    },
+    {
+      "code": {
+        "brief": {
+          "role": "**`android_webview_controller_test.dart`** 是 [ctrl](#node:ctrl) 的單元測試，用 mock 的 `WebView` 與 `WebSettings` 驗證 controller 的呼叫。",
+          "task": "建構子測試改成驗證 `setUseWideViewPort(false)`；新增 `setUseWideViewPort` 測試，確認呼叫會轉給 `WebSettings`。"
+        },
+        "files": [
+          {
+            "path": "packages/webview_flutter/webview_flutter_android/test/android_webview_controller_test.dart",
+            "summary": "預設值的驗證改成 false；新增 setUseWideViewPort 測試"
+          }
+        ]
+      },
+      "id": "bctrltest",
+      "label": "android_webview_controller_test.dart",
+      "pos": [
+        300,
+        300
+      ],
+      "size": [
+        210,
+        64
+      ],
+      "sublabel": "預設值與新 setter",
+      "type": "frontend"
+    }
+  ],
+  "connections": [
+    {
+      "code": {
+        "action": "使用者在範例 App 右上選單點「Log example」（`main.dart:408` 呼叫 `_onLogExample`）",
+        "diff": "@@ -295,4 +295,6 @@ class WebKitWebViewController extends PlatformWebViewController {\n   }\n \n+  static const String _onConsoleMessageChannelName = 'fltConsoleMessage';\n+\n   /// The WebKit WebView being controlled.\n   late final PlatformWebView _webView = PlatformWebView(\n@@ -701,9 +703,14 @@ class WebKitWebViewController extends PlatformWebViewController {\n   Future<void> setOnConsoleMessage(\n     void Function(JavaScriptConsoleMessage consoleMessage) onConsoleMessage,\n-  ) {\n+  ) async {\n     _onConsoleMessageCallback = onConsoleMessage;\n \n+    // If channel name is already present, the callback is already registered.\n+    if (_javaScriptChannelParams.containsKey(_onConsoleMessageChannelName)) {\n+      return;\n+    }\n+\n     final JavaScriptChannelParams channelParams = WebKitJavaScriptChannelParams(\n-      name: 'fltConsoleMessage',\n+      name: _onConsoleMessageChannelName,\n       onMessageReceived: (JavaScriptMessage message) {\n         if (_onConsoleMessageCallback == null) {\n@@ -737,5 +744,5 @@ class WebKitWebViewController extends PlatformWebViewController {\n     );\n \n-    addJavaScriptChannel(channelParams);\n+    await addJavaScriptChannel(channelParams);\n     return _injectConsoleOverride();\n   }",
+        "from_symbol": "SampleMenu._onLogExample",
+        "line": 297,
+        "note": "第二次呼叫 **`setOnConsoleMessage`** 只換掉 callback，不再重新註冊 channel。",
+        "path": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+        "to_symbol": "WebKitWebViewController.setOnConsoleMessage"
+      },
+      "from": "amenu",
+      "id": "amenu-ctrl",
+      "label": "setOnConsoleMessage",
+      "to": "actrl"
+    },
+    {
+      "code": {
+        "diff": "@@ -701,9 +703,14 @@ class WebKitWebViewController extends PlatformWebViewController {\n   Future<void> setOnConsoleMessage(\n     void Function(JavaScriptConsoleMessage consoleMessage) onConsoleMessage,\n-  ) {\n+  ) async {\n     _onConsoleMessageCallback = onConsoleMessage;\n \n+    // If channel name is already present, the callback is already registered.\n+    if (_javaScriptChannelParams.containsKey(_onConsoleMessageChannelName)) {\n+      return;\n+    }\n+\n     final JavaScriptChannelParams channelParams = WebKitJavaScriptChannelParams(\n-      name: 'fltConsoleMessage',\n+      name: _onConsoleMessageChannelName,\n       onMessageReceived: (JavaScriptMessage message) {\n         if (_onConsoleMessageCallback == null) {\n@@ -737,5 +744,5 @@ class WebKitWebViewController extends PlatformWebViewController {\n     );\n \n-    addJavaScriptChannel(channelParams);\n+    await addJavaScriptChannel(channelParams);\n     return _injectConsoleOverride();\n   }",
+        "from_symbol": "WebKitWebViewController.setOnConsoleMessage",
+        "line": 709,
+        "note": "console channel 只會向 **`WKUserContentController`** 註冊一次。",
+        "path": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+        "story": "**`WKUserContentController`** 像大樓的信箱管理員，每個名字只能掛一個信箱；**controller** 以前每次都去申請一個叫 `fltConsoleMessage` 的信箱，第二次就被管理員退件。現在 **controller** 先翻自己的登記簿 `_javaScriptChannelParams`，已經有這個信箱就不再申請。",
+        "to_symbol": "WKUserContentController.addScriptMessageHandler"
+      },
+      "from": "actrl",
+      "id": "actrl-ucc",
+      "label": "message handler",
+      "to": "aucc"
+    },
+    {
+      "code": {
+        "diff": "@@ -904,5 +911,6 @@ class WebKitWebViewController extends PlatformWebViewController {\n     // removeCyclicObject method is passed in to solve the error.\n     final overrideScript = WKUserScript(\n-      source: '''\n+      source:\n+          '''\n var _flutter_webview_plugin_overrides = _flutter_webview_plugin_overrides || {\n   removeCyclicObject: function() {\n@@ -933,5 +941,5 @@ var _flutter_webview_plugin_overrides = _flutter_webview_plugin_overrides || {\n     };\n \n-    window.webkit.messageHandlers.fltConsoleMessage.postMessage(JSON.stringify(log));\n+    window.webkit.messageHandlers.$_onConsoleMessageChannelName.postMessage(JSON.stringify(log));\n   }\n };",
+        "from_symbol": "WebKitWebViewController._injectConsoleOverride",
+        "line": 913,
+        "note": "注入網頁的 JS 改用同一個 channel 名稱常數。",
+        "path": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+        "story": "注入的腳本像替網頁的 `console` 裝上一支對講機，對講機的頻道名稱以前是手寫在腳本裡的 `fltConsoleMessage`；現在改成從 **controller** 的常數抄過來，App 和網頁兩邊用的是同一個頻道名。",
+        "to_symbol": "window.webkit.messageHandlers.fltConsoleMessage"
+      },
+      "from": "actrl",
+      "id": "actrl-page",
+      "label": "注入腳本",
+      "to": "apage"
+    },
+    {
+      "code": {
+        "diff": "@@ -1816,4 +1816,24 @@ window.addEventListener(\"error\", function(e) {\n         expect(logs[JavaScriptLogLevel.warning], 'Warning message');\n       });\n+\n+      test('setOnConsoleMessage called twice does not throw', () async {\n+        final mockUserContentController = MockWKUserContentController();\n+        final WebKitWebViewController controller = createControllerWithMocks(\n+          mockUserContentController: mockUserContentController,\n+        );\n+\n+        await controller.setOnConsoleMessage(\n+          (JavaScriptConsoleMessage message) {},\n+        );\n+        await controller.setOnConsoleMessage(\n+          (JavaScriptConsoleMessage message) {},\n+        );\n+\n+        verifyNever(\n+          mockUserContentController.removeScriptMessageHandler(\n+            'fltConsoleMessage',\n+          ),\n+        );\n+      });\n     });\n ",
+        "from_symbol": "WebKitWebViewController.setOnConsoleMessage",
+        "line": 1819,
+        "note": "新增測試：連續呼叫兩次 `setOnConsoleMessage` 不丟例外。",
+        "path": "packages/webview_flutter/webview_flutter_wkwebview/test/webkit_webview_controller_test.dart",
+        "story": "這個測試像請人連按兩次同一個門鈴：用 mock 的 `WKUserContentController` 建好 **controller**，連續呼叫兩次 `setOnConsoleMessage`，確認第二次沒有出事，也沒有人去拆掉原本的信箱。",
+        "to_symbol": "setOnConsoleMessage called twice does not throw"
+      },
+      "from": "actrl",
+      "id": "actrl-ctrltest",
+      "label": "測試",
+      "to": "actrltest"
+    },
+    {
+      "code": {
+        "action": "使用者在範例 App 右上選單點「Viewport meta example」",
+        "diff": "@@ -140,4 +140,24 @@ const String kAlertTestPage = '''\n ''';\n \n+const String kViewportMetaPage = '''\n+  <!DOCTYPE html>\n+  <html>\n+  <head>\n+      <title>Viewport meta example</title>\n+  </head>\n+  <meta name=\"viewport\" content=\"width=1000, initial-scale=1\" />\n+  <style type=\"text/css\">\n+      body { background: transparent; margin: 0; padding: 0; }\n+      #shape { background: red; width: 50vw; height: 50vw; }\n+  </style>\n+  <body>\n+  <div>\n+      <p>Viewport meta example</p>\n+      <img id=\"shape\" src=\"https://storage.googleapis.com/cms-storage-bucket/4fd5520fe28ebf839174.svg\"/>\n+  </div>\n+  </body>\n+  </html>\n+''';\n+\n class WebViewExample extends StatefulWidget {\n   const WebViewExample({super.key, this.cookieManager});\n@@ -326,4 +346,5 @@ enum MenuOptions {\n   basicAuthentication,\n   javaScriptAlert,\n+  viewportMeta,\n }\n \n@@ -381,4 +402,6 @@ class SampleMenu extends StatelessWidget {\n           case MenuOptions.javaScriptAlert:\n             _onJavaScriptAlertExample(context);\n+          case MenuOptions.viewportMeta:\n+            _onViewportMetaExample();\n         }\n       },\n@@ -453,4 +476,8 @@ class SampleMenu extends StatelessWidget {\n           child: Text('JavaScript Alert Example'),\n         ),\n+        const PopupMenuItem<MenuOptions>(\n+          value: MenuOptions.viewportMeta,\n+          child: Text('Viewport meta example'),\n+        ),\n       ],\n     );\n@@ -749,4 +776,8 @@ class SampleMenu extends StatelessWidget {\n         '';\n   }\n+\n+  Future<void> _onViewportMetaExample() {\n+    return webViewController.loadHtmlString(kViewportMetaPage);\n+  }\n }\n ",
+        "from_symbol": "SampleMenu._onViewportMetaExample",
+        "line": 142,
+        "note": "範例新增一個選單項目，載入帶 viewport meta 的網頁。",
+        "path": "packages/webview_flutter/webview_flutter_android/example/lib/main.dart",
+        "to_symbol": "AndroidWebViewController.loadHtmlString"
+      },
+      "from": "bmenu",
+      "id": "bmenu-ctrl",
+      "label": "loadHtmlString",
+      "to": "bctrl"
+    },
+    {
+      "code": {
+        "diff": "@@ -87,5 +87,5 @@ class AndroidWebViewController extends PlatformWebViewController {\n     _webView.settings.setSupportMultipleWindows(true);\n     _webView.settings.setLoadWithOverviewMode(true);\n-    _webView.settings.setUseWideViewPort(true);\n+    _webView.settings.setUseWideViewPort(false);\n     _webView.settings.setDisplayZoomControls(false);\n     _webView.settings.setBuiltInZoomControls(true);\n@@ -600,4 +600,11 @@ class AndroidWebViewController extends PlatformWebViewController {\n       _webView.settings.setTextZoom(textZoom);\n \n+  /// Sets whether the WebView should enable support for the \"viewport\" HTML\n+  /// meta tag or should use a wide viewport.\n+  ///\n+  /// The default is false.\n+  Future<void> setUseWideViewPort(bool use) =>\n+      _webView.settings.setUseWideViewPort(use);\n+\n   /// Enables or disables content URL access.\n   ///",
+        "from_symbol": "AndroidWebViewController",
+        "line": 89,
+        "note": "建構時預設改成 `false`，並新增可由 App 呼叫的 `setUseWideViewPort`。",
+        "path": "packages/webview_flutter/webview_flutter_android/lib/src/android_webview_controller.dart",
+        "story": "**controller** 像替新房子做初始裝潢的工班，以前一進門就把客廳隔間全打掉（wide viewport 開）；現在照原生 WebView 的出廠樣子保留隔間（`false`），並在門口留一張單子 `setUseWideViewPort`，屋主想打掉再自己勾。",
+        "to_symbol": "WebSettings.setUseWideViewPort"
+      },
+      "from": "bctrl",
+      "id": "bctrl-settings",
+      "label": "setUseWideViewPort",
+      "to": "bsettings"
+    },
+    {
+      "code": {
+        "diff": "@@ -290,5 +290,5 @@ void main() {\n       verify(mockWebSettings.setLoadWithOverviewMode(true)).called(1);\n       verify(mockWebSettings.setSupportMultipleWindows(true)).called(1);\n-      verify(mockWebSettings.setUseWideViewPort(true)).called(1);\n+      verify(mockWebSettings.setUseWideViewPort(false)).called(1);\n     });\n \n@@ -1599,4 +1599,20 @@ void main() {\n   });\n \n+  test('setUseWideViewPort', () async {\n+    final MockWebView mockWebView = MockWebView();\n+    final MockWebSettings mockSettings = MockWebSettings();\n+    final AndroidWebViewController controller = createControllerWithMocks(\n+      mockWebView: mockWebView,\n+      mockSettings: mockSettings,\n+    );\n+\n+    clearInteractions(mockWebView);\n+\n+    await controller.setUseWideViewPort(true);\n+\n+    verify(mockWebView.settings).called(1);\n+    verify(mockSettings.setUseWideViewPort(true)).called(1);\n+  });\n+\n   test('setAllowContentAccess', () async {\n     final MockWebView mockWebView = MockWebView();",
+        "from_symbol": "AndroidWebViewController.setUseWideViewPort",
+        "line": 292,
+        "note": "預設值的斷言改成 `false`，並新增 setter 的轉呼叫測試。",
+        "path": "packages/webview_flutter/webview_flutter_android/test/android_webview_controller_test.dart",
+        "story": "測試像驗收員拿著清單：先確認新房子的隔間預設保留（建構時呼叫 `setUseWideViewPort(false)`），再請屋主勾一次「打掉」，看工班是不是真的把單子交給 `WebSettings`。",
+        "to_symbol": "setUseWideViewPort"
+      },
+      "from": "bctrl",
+      "id": "bctrl-ctrltest",
+      "label": "測試",
+      "to": "bctrltest"
+    },
+    {
+      "code": {
+        "diff": "@@ -904,5 +911,6 @@ class WebKitWebViewController extends PlatformWebViewController {\n     // removeCyclicObject method is passed in to solve the error.\n     final overrideScript = WKUserScript(\n-      source: '''\n+      source:\n+          '''\n var _flutter_webview_plugin_overrides = _flutter_webview_plugin_overrides || {\n   removeCyclicObject: function() {\n@@ -933,5 +941,5 @@ var _flutter_webview_plugin_overrides = _flutter_webview_plugin_overrides || {\n     };\n \n-    window.webkit.messageHandlers.fltConsoleMessage.postMessage(JSON.stringify(log));\n+    window.webkit.messageHandlers.$_onConsoleMessageChannelName.postMessage(JSON.stringify(log));\n   }\n };",
+        "from_symbol": "WebKitWebViewController._injectConsoleOverride",
+        "line": 913,
+        "note": "注入網頁的 JS 改用同一個 channel 名稱常數。",
+        "path": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+        "story": "注入的腳本像替網頁的 `console` 裝上一支對講機，對講機的頻道名稱以前是手寫在腳本裡的 `fltConsoleMessage`；現在改成從 **controller** 的常數抄過來，App 和網頁兩邊用的是同一個頻道名。",
+        "to_symbol": "window.webkit.messageHandlers.fltConsoleMessage"
+      },
+      "from": "actrl",
+      "id": "actrl-to-bchangelog",
+      "label": "注入腳本",
+      "to": "bchangelog"
+    },
+    {
+      "code": {
+        "diff": "@@ -904,5 +911,6 @@ class WebKitWebViewController extends PlatformWebViewController {\n     // removeCyclicObject method is passed in to solve the error.\n     final overrideScript = WKUserScript(\n-      source: '''\n+      source:\n+          '''\n var _flutter_webview_plugin_overrides = _flutter_webview_plugin_overrides || {\n   removeCyclicObject: function() {\n@@ -933,5 +941,5 @@ var _flutter_webview_plugin_overrides = _flutter_webview_plugin_overrides || {\n     };\n \n-    window.webkit.messageHandlers.fltConsoleMessage.postMessage(JSON.stringify(log));\n+    window.webkit.messageHandlers.$_onConsoleMessageChannelName.postMessage(JSON.stringify(log));\n   }\n };",
+        "from_symbol": "WebKitWebViewController._injectConsoleOverride",
+        "line": 913,
+        "note": "注入網頁的 JS 改用同一個 channel 名稱常數。",
+        "path": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+        "story": "注入的腳本像替網頁的 `console` 裝上一支對講機，對講機的頻道名稱以前是手寫在腳本裡的 `fltConsoleMessage`；現在改成從 **controller** 的常數抄過來，App 和網頁兩邊用的是同一個頻道名。",
+        "to_symbol": "window.webkit.messageHandlers.fltConsoleMessage"
+      },
+      "from": "actrl",
+      "id": "actrl-to-bmenu",
+      "label": "注入腳本",
+      "to": "bmenu"
+    },
+    {
+      "code": {
+        "diff": "@@ -904,5 +911,6 @@ class WebKitWebViewController extends PlatformWebViewController {\n     // removeCyclicObject method is passed in to solve the error.\n     final overrideScript = WKUserScript(\n-      source: '''\n+      source:\n+          '''\n var _flutter_webview_plugin_overrides = _flutter_webview_plugin_overrides || {\n   removeCyclicObject: function() {\n@@ -933,5 +941,5 @@ var _flutter_webview_plugin_overrides = _flutter_webview_plugin_overrides || {\n     };\n \n-    window.webkit.messageHandlers.fltConsoleMessage.postMessage(JSON.stringify(log));\n+    window.webkit.messageHandlers.$_onConsoleMessageChannelName.postMessage(JSON.stringify(log));\n   }\n };",
+        "from_symbol": "WebKitWebViewController._injectConsoleOverride",
+        "line": 913,
+        "note": "注入網頁的 JS 改用同一個 channel 名稱常數。",
+        "path": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+        "story": "注入的腳本像替網頁的 `console` 裝上一支對講機，對講機的頻道名稱以前是手寫在腳本裡的 `fltConsoleMessage`；現在改成從 **controller** 的常數抄過來，App 和網頁兩邊用的是同一個頻道名。",
+        "to_symbol": "window.webkit.messageHandlers.fltConsoleMessage"
+      },
+      "from": "actrl",
+      "id": "actrl-to-bpubspec",
+      "label": "注入腳本",
+      "to": "bpubspec"
+    },
+    {
+      "code": {
+        "diff": "@@ -904,5 +911,6 @@ class WebKitWebViewController extends PlatformWebViewController {\n     // removeCyclicObject method is passed in to solve the error.\n     final overrideScript = WKUserScript(\n-      source: '''\n+      source:\n+          '''\n var _flutter_webview_plugin_overrides = _flutter_webview_plugin_overrides || {\n   removeCyclicObject: function() {\n@@ -933,5 +941,5 @@ var _flutter_webview_plugin_overrides = _flutter_webview_plugin_overrides || {\n     };\n \n-    window.webkit.messageHandlers.fltConsoleMessage.postMessage(JSON.stringify(log));\n+    window.webkit.messageHandlers.$_onConsoleMessageChannelName.postMessage(JSON.stringify(log));\n   }\n };",
+        "from_symbol": "WebKitWebViewController._injectConsoleOverride",
+        "line": 913,
+        "note": "注入網頁的 JS 改用同一個 channel 名稱常數。",
+        "path": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+        "story": "注入的腳本像替網頁的 `console` 裝上一支對講機，對講機的頻道名稱以前是手寫在腳本裡的 `fltConsoleMessage`；現在改成從 **controller** 的常數抄過來，App 和網頁兩邊用的是同一個頻道名。",
+        "to_symbol": "window.webkit.messageHandlers.fltConsoleMessage"
+      },
+      "from": "actrl",
+      "id": "actrl-to-bsettings",
+      "label": "注入腳本",
+      "to": "bsettings"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "items": [
+        "同一個 WebView 第二次呼叫 **`setOnConsoleMessage`** 時 App 會當掉：`addJavaScriptChannel` 發現 `fltConsoleMessage` 已註冊就丟 `ArgumentError`（commit message 與 flutter/flutter#180914）。",
+        "修法是在 channel 已存在時只換掉 callback 就 return，不再重新註冊；channel 名稱抽成常數 `_onConsoleMessageChannelName`，Dart 端與注入網頁的 JS 共用同一個名字。",
+        "`addJavaScriptChannel` 改成 `await`，第一次註冊時的錯誤會回到呼叫端，不再變成沒人接的非同步例外。"
+      ],
+      "title": "這張 Story 的目的"
+    },
+    {
+      "dot": "amber",
+      "items": [
+        "[medium][code-review] PR 說明寫「先移除既有 handler 再加新的」，但程式是在 channel 已存在時直接 return，測試也用 `verifyNever(removeScriptMessageHandler)` 驗證沒有移除；說明和實作不一致，要請作者更新 PR 說明嗎？（webkit_webview_controller.dart:709, menu-ctrl step 3）",
+        "[medium][code-review] 如果 App 先用 `addJavaScriptChannel` 自己註冊了名為 `fltConsoleMessage` 的 channel，`setOnConsoleMessage` 會直接 return，也不會呼叫 `_injectConsoleOverride`，console 訊息就不會轉給 callback；要不要改成記錄「console channel 是否由這裡註冊」再判斷？（webkit_webview_controller.dart:709, ctrl-ucc step 1）",
+        "[medium][code-review] 新測試只驗證沒有呼叫 `removeScriptMessageHandler`，沒驗證第二次呼叫後 callback 換成新的、`addScriptMessageHandler` 只呼叫一次；要補這兩個斷言嗎？（webkit_webview_controller_test.dart:1832, ctrl-ctrltest step 3）",
+        "[low][security-review] 審查的 hunk 沒有發現問題",
+        "[low][code-review] 測試名稱寫「does not throw」，但只靠 `await` 沒拋錯來隱含驗證；改成 `await expectLater(controller.setOnConsoleMessage(...), completes)` 讓意圖寫在斷言上（webkit_webview_controller_test.dart:1828, ctrl-ctrltest step 2）",
+        "[low][code-review] 測試裡寫死 `'fltConsoleMessage'`，和 controller 的 `_onConsoleMessageChannelName` 是兩份字串；把常數改成 `@visibleForTesting` 的公開常數讓測試引用，避免兩邊改名時不同步（webkit_webview_controller_test.dart:1834, ctrl-ctrltest step 3）"
+      ],
+      "title": "待確認問題 / TODO"
+    }
+  ],
+  "changes": {
+    "commits": [
+      {
+        "sha": "12b43a192e",
+        "subject": "[webview_flutter_wkwebview] Fix crash when calling setOnConsoleMessage multiple times (#10922)"
+      },
+      {
+        "sha": "58d4016085",
+        "subject": "[webview_flutter_android] feat: Expose setUseWideViewPort on Android (#106999) (#9151)"
+      }
+    ],
+    "files": [
+      {
+        "additions": 4,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_wkwebview/CHANGELOG.md",
+        "status": "modified"
+      },
+      {
+        "additions": 13,
+        "deletions": 5,
+        "path": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+        "status": "modified"
+      },
+      {
+        "additions": 1,
+        "deletions": 1,
+        "path": "packages/webview_flutter/webview_flutter_wkwebview/pubspec.yaml",
+        "status": "modified"
+      },
+      {
+        "additions": 20,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_wkwebview/test/webkit_webview_controller_test.dart",
+        "status": "modified"
+      },
+      {
+        "additions": 5,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_android/CHANGELOG.md",
+        "status": "modified"
+      },
+      {
+        "additions": 31,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_android/example/lib/main.dart",
+        "status": "modified"
+      },
+      {
+        "additions": 8,
+        "deletions": 1,
+        "path": "packages/webview_flutter/webview_flutter_android/lib/src/android_webview_controller.dart",
+        "status": "modified"
+      },
+      {
+        "additions": 1,
+        "deletions": 1,
+        "path": "packages/webview_flutter/webview_flutter_android/pubspec.yaml",
+        "status": "modified"
+      },
+      {
+        "additions": 17,
+        "deletions": 1,
+        "path": "packages/webview_flutter/webview_flutter_android/test/android_webview_controller_test.dart",
+        "status": "modified"
+      }
+    ]
+  }
+}

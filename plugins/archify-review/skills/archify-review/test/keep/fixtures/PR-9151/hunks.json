@@ -1,0 +1,678 @@
+{
+  "changes": {
+    "commits": [
+      {
+        "sha": "58d4016085",
+        "subject": "[webview_flutter_android] feat: Expose setUseWideViewPort on Android (#106999) (#9151)"
+      }
+    ],
+    "files": [
+      {
+        "additions": 5,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_android/CHANGELOG.md",
+        "status": "modified"
+      },
+      {
+        "additions": 31,
+        "deletions": 0,
+        "path": "packages/webview_flutter/webview_flutter_android/example/lib/main.dart",
+        "status": "modified"
+      },
+      {
+        "additions": 8,
+        "deletions": 1,
+        "path": "packages/webview_flutter/webview_flutter_android/lib/src/android_webview_controller.dart",
+        "status": "modified"
+      },
+      {
+        "additions": 1,
+        "deletions": 1,
+        "path": "packages/webview_flutter/webview_flutter_android/pubspec.yaml",
+        "status": "modified"
+      },
+      {
+        "additions": 17,
+        "deletions": 1,
+        "path": "packages/webview_flutter/webview_flutter_android/test/android_webview_controller_test.dart",
+        "status": "modified"
+      }
+    ]
+  },
+  "hunks": [
+    {
+      "n": 1,
+      "commit": "58d4016085",
+      "file": "packages/webview_flutter/webview_flutter_android/CHANGELOG.md",
+      "header": "@@ -1,2 +1,7 @@",
+      "text": "@@ -1,2 +1,7 @@\n+## 4.6.0\n+\n+* Adds support to set using wide view port. See `AndroidWebViewController.setUseWideViewPort`.\n+* Changes default of `WebSettings.setUseWideViewPort` to `false` to align with native WebViews.\n+\n ## 4.5.0\n ",
+      "lines": [
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 2
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 3
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 4
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 5
+        },
+        {
+          "sign": " ",
+          "oldNo": 1,
+          "newNo": 6
+        },
+        {
+          "sign": " ",
+          "oldNo": 2,
+          "newNo": 7
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "commit": "58d4016085",
+      "file": "packages/webview_flutter/webview_flutter_android/example/lib/main.dart",
+      "header": "@@ -140,4 +140,24 @@ const String kAlertTestPage = '''",
+      "text": "@@ -140,4 +140,24 @@ const String kAlertTestPage = '''\n ''';\n \n+const String kViewportMetaPage = '''\n+  <!DOCTYPE html>\n+  <html>\n+  <head>\n+      <title>Viewport meta example</title>\n+  </head>\n+  <meta name=\"viewport\" content=\"width=1000, initial-scale=1\" />\n+  <style type=\"text/css\">\n+      body { background: transparent; margin: 0; padding: 0; }\n+      #shape { background: red; width: 50vw; height: 50vw; }\n+  </style>\n+  <body>\n+  <div>\n+      <p>Viewport meta example</p>\n+      <img id=\"shape\" src=\"https://storage.googleapis.com/cms-storage-bucket/4fd5520fe28ebf839174.svg\"/>\n+  </div>\n+  </body>\n+  </html>\n+''';\n+\n class WebViewExample extends StatefulWidget {\n   const WebViewExample({super.key, this.cookieManager});",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 140,
+          "newNo": 140
+        },
+        {
+          "sign": " ",
+          "oldNo": 141,
+          "newNo": 141
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 142
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 143
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 144
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 145
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 146
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 147
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 148
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 149
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 150
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 151
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 152
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 153
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 154
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 155
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 156
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 157
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 158
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 159
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 160
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 161
+        },
+        {
+          "sign": " ",
+          "oldNo": 142,
+          "newNo": 162
+        },
+        {
+          "sign": " ",
+          "oldNo": 143,
+          "newNo": 163
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "commit": "58d4016085",
+      "file": "packages/webview_flutter/webview_flutter_android/example/lib/main.dart",
+      "header": "@@ -326,4 +346,5 @@ enum MenuOptions {",
+      "text": "@@ -326,4 +346,5 @@ enum MenuOptions {\n   basicAuthentication,\n   javaScriptAlert,\n+  viewportMeta,\n }\n ",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 326,
+          "newNo": 346
+        },
+        {
+          "sign": " ",
+          "oldNo": 327,
+          "newNo": 347
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 348
+        },
+        {
+          "sign": " ",
+          "oldNo": 328,
+          "newNo": 349
+        },
+        {
+          "sign": " ",
+          "oldNo": 329,
+          "newNo": 350
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "commit": "58d4016085",
+      "file": "packages/webview_flutter/webview_flutter_android/example/lib/main.dart",
+      "header": "@@ -381,4 +402,6 @@ class SampleMenu extends StatelessWidget {",
+      "text": "@@ -381,4 +402,6 @@ class SampleMenu extends StatelessWidget {\n           case MenuOptions.javaScriptAlert:\n             _onJavaScriptAlertExample(context);\n+          case MenuOptions.viewportMeta:\n+            _onViewportMetaExample();\n         }\n       },",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 381,
+          "newNo": 402
+        },
+        {
+          "sign": " ",
+          "oldNo": 382,
+          "newNo": 403
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 404
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 405
+        },
+        {
+          "sign": " ",
+          "oldNo": 383,
+          "newNo": 406
+        },
+        {
+          "sign": " ",
+          "oldNo": 384,
+          "newNo": 407
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "commit": "58d4016085",
+      "file": "packages/webview_flutter/webview_flutter_android/example/lib/main.dart",
+      "header": "@@ -453,4 +476,8 @@ class SampleMenu extends StatelessWidget {",
+      "text": "@@ -453,4 +476,8 @@ class SampleMenu extends StatelessWidget {\n           child: Text('JavaScript Alert Example'),\n         ),\n+        const PopupMenuItem<MenuOptions>(\n+          value: MenuOptions.viewportMeta,\n+          child: Text('Viewport meta example'),\n+        ),\n       ],\n     );",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 453,
+          "newNo": 476
+        },
+        {
+          "sign": " ",
+          "oldNo": 454,
+          "newNo": 477
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 478
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 479
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 480
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 481
+        },
+        {
+          "sign": " ",
+          "oldNo": 455,
+          "newNo": 482
+        },
+        {
+          "sign": " ",
+          "oldNo": 456,
+          "newNo": 483
+        }
+      ]
+    },
+    {
+      "n": 6,
+      "commit": "58d4016085",
+      "file": "packages/webview_flutter/webview_flutter_android/example/lib/main.dart",
+      "header": "@@ -749,4 +776,8 @@ class SampleMenu extends StatelessWidget {",
+      "text": "@@ -749,4 +776,8 @@ class SampleMenu extends StatelessWidget {\n         '';\n   }\n+\n+  Future<void> _onViewportMetaExample() {\n+    return webViewController.loadHtmlString(kViewportMetaPage);\n+  }\n }\n ",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 749,
+          "newNo": 776
+        },
+        {
+          "sign": " ",
+          "oldNo": 750,
+          "newNo": 777
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 778
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 779
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 780
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 781
+        },
+        {
+          "sign": " ",
+          "oldNo": 751,
+          "newNo": 782
+        },
+        {
+          "sign": " ",
+          "oldNo": 752,
+          "newNo": 783
+        }
+      ]
+    },
+    {
+      "n": 7,
+      "commit": "58d4016085",
+      "file": "packages/webview_flutter/webview_flutter_android/lib/src/android_webview_controller.dart",
+      "header": "@@ -87,5 +87,5 @@ class AndroidWebViewController extends PlatformWebViewController {",
+      "text": "@@ -87,5 +87,5 @@ class AndroidWebViewController extends PlatformWebViewController {\n     _webView.settings.setSupportMultipleWindows(true);\n     _webView.settings.setLoadWithOverviewMode(true);\n-    _webView.settings.setUseWideViewPort(true);\n+    _webView.settings.setUseWideViewPort(false);\n     _webView.settings.setDisplayZoomControls(false);\n     _webView.settings.setBuiltInZoomControls(true);",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 87,
+          "newNo": 87
+        },
+        {
+          "sign": " ",
+          "oldNo": 88,
+          "newNo": 88
+        },
+        {
+          "sign": "-",
+          "oldNo": 89,
+          "newNo": null
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 89
+        },
+        {
+          "sign": " ",
+          "oldNo": 90,
+          "newNo": 90
+        },
+        {
+          "sign": " ",
+          "oldNo": 91,
+          "newNo": 91
+        }
+      ]
+    },
+    {
+      "n": 8,
+      "commit": "58d4016085",
+      "file": "packages/webview_flutter/webview_flutter_android/lib/src/android_webview_controller.dart",
+      "header": "@@ -600,4 +600,11 @@ class AndroidWebViewController extends PlatformWebViewController {",
+      "text": "@@ -600,4 +600,11 @@ class AndroidWebViewController extends PlatformWebViewController {\n       _webView.settings.setTextZoom(textZoom);\n \n+  /// Sets whether the WebView should enable support for the \"viewport\" HTML\n+  /// meta tag or should use a wide viewport.\n+  ///\n+  /// The default is false.\n+  Future<void> setUseWideViewPort(bool use) =>\n+      _webView.settings.setUseWideViewPort(use);\n+\n   /// Enables or disables content URL access.\n   ///",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 600,
+          "newNo": 600
+        },
+        {
+          "sign": " ",
+          "oldNo": 601,
+          "newNo": 601
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 602
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 603
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 604
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 605
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 606
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 607
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 608
+        },
+        {
+          "sign": " ",
+          "oldNo": 602,
+          "newNo": 609
+        },
+        {
+          "sign": " ",
+          "oldNo": 603,
+          "newNo": 610
+        }
+      ]
+    },
+    {
+      "n": 9,
+      "commit": "58d4016085",
+      "file": "packages/webview_flutter/webview_flutter_android/pubspec.yaml",
+      "header": "@@ -3,5 +3,5 @@ description: A Flutter plugin that provides a WebView widget on Android.",
+      "text": "@@ -3,5 +3,5 @@ description: A Flutter plugin that provides a WebView widget on Android.\n repository: https://github.com/flutter/packages/tree/main/packages/webview_flutter/webview_flutter_android\n issue_tracker: https://github.com/flutter/flutter/issues?q=is%3Aissue+is%3Aopen+label%3A%22p%3A+webview%22\n-version: 4.5.0\n+version: 4.6.0\n \n environment:",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 3,
+          "newNo": 3
+        },
+        {
+          "sign": " ",
+          "oldNo": 4,
+          "newNo": 4
+        },
+        {
+          "sign": "-",
+          "oldNo": 5,
+          "newNo": null
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 5
+        },
+        {
+          "sign": " ",
+          "oldNo": 6,
+          "newNo": 6
+        },
+        {
+          "sign": " ",
+          "oldNo": 7,
+          "newNo": 7
+        }
+      ]
+    },
+    {
+      "n": 10,
+      "commit": "58d4016085",
+      "file": "packages/webview_flutter/webview_flutter_android/test/android_webview_controller_test.dart",
+      "header": "@@ -290,5 +290,5 @@ void main() {",
+      "text": "@@ -290,5 +290,5 @@ void main() {\n       verify(mockWebSettings.setLoadWithOverviewMode(true)).called(1);\n       verify(mockWebSettings.setSupportMultipleWindows(true)).called(1);\n-      verify(mockWebSettings.setUseWideViewPort(true)).called(1);\n+      verify(mockWebSettings.setUseWideViewPort(false)).called(1);\n     });\n ",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 290,
+          "newNo": 290
+        },
+        {
+          "sign": " ",
+          "oldNo": 291,
+          "newNo": 291
+        },
+        {
+          "sign": "-",
+          "oldNo": 292,
+          "newNo": null
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 292
+        },
+        {
+          "sign": " ",
+          "oldNo": 293,
+          "newNo": 293
+        },
+        {
+          "sign": " ",
+          "oldNo": 294,
+          "newNo": 294
+        }
+      ]
+    },
+    {
+      "n": 11,
+      "commit": "58d4016085",
+      "file": "packages/webview_flutter/webview_flutter_android/test/android_webview_controller_test.dart",
+      "header": "@@ -1599,4 +1599,20 @@ void main() {",
+      "text": "@@ -1599,4 +1599,20 @@ void main() {\n   });\n \n+  test('setUseWideViewPort', () async {\n+    final MockWebView mockWebView = MockWebView();\n+    final MockWebSettings mockSettings = MockWebSettings();\n+    final AndroidWebViewController controller = createControllerWithMocks(\n+      mockWebView: mockWebView,\n+      mockSettings: mockSettings,\n+    );\n+\n+    clearInteractions(mockWebView);\n+\n+    await controller.setUseWideViewPort(true);\n+\n+    verify(mockWebView.settings).called(1);\n+    verify(mockSettings.setUseWideViewPort(true)).called(1);\n+  });\n+\n   test('setAllowContentAccess', () async {\n     final MockWebView mockWebView = MockWebView();",
+      "lines": [
+        {
+          "sign": " ",
+          "oldNo": 1599,
+          "newNo": 1599
+        },
+        {
+          "sign": " ",
+          "oldNo": 1600,
+          "newNo": 1600
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1601
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1602
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1603
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1604
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1605
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1606
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1607
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1608
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1609
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1610
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1611
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1612
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1613
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1614
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1615
+        },
+        {
+          "sign": "+",
+          "oldNo": null,
+          "newNo": 1616
+        },
+        {
+          "sign": " ",
+          "oldNo": 1601,
+          "newNo": 1617
+        },
+        {
+          "sign": " ",
+          "oldNo": 1602,
+          "newNo": 1618
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,345 @@
+{
+  "meta": {
+    "title": "PR-10922 重複呼叫 setOnConsoleMessage 不再當掉",
+    "locale": "zh-TW",
+    "quality_profile": "showcase",
+    "platform": "app",
+    "framework": "flutter"
+  },
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "這張 Story 的目的",
+      "items": [
+        "同一個 WebView 第二次呼叫 **`setOnConsoleMessage`** 時 App 會當掉：`addJavaScriptChannel` 發現 `fltConsoleMessage` 已註冊就丟 `ArgumentError`（commit message 與 flutter/flutter#180914）。",
+        "修法是在 channel 已存在時只換掉 callback 就 return，不再重新註冊；channel 名稱抽成常數 `_onConsoleMessageChannelName`，Dart 端與注入網頁的 JS 共用同一個名字。",
+        "`addJavaScriptChannel` 改成 `await`，第一次註冊時的錯誤會回到呼叫端，不再變成沒人接的非同步例外。"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "待確認問題 / TODO",
+      "items": [
+        "[medium][code-review] PR 說明寫「先移除既有 handler 再加新的」，但程式是在 channel 已存在時直接 return，測試也用 `verifyNever(removeScriptMessageHandler)` 驗證沒有移除；說明和實作不一致，要請作者更新 PR 說明嗎？（webkit_webview_controller.dart:709, menu-ctrl）",
+        "[medium][code-review] 如果 App 先用 `addJavaScriptChannel` 自己註冊了名為 `fltConsoleMessage` 的 channel，`setOnConsoleMessage` 會直接 return，也不會呼叫 `_injectConsoleOverride`，console 訊息就不會轉給 callback；要不要改成記錄「console channel 是否由這裡註冊」再判斷？（webkit_webview_controller.dart:709, ctrl-ucc）",
+        "[medium][code-review] 新測試只驗證沒有呼叫 `removeScriptMessageHandler`，沒驗證第二次呼叫後 callback 換成新的、`addScriptMessageHandler` 只呼叫一次；要補這兩個斷言嗎？（webkit_webview_controller_test.dart:1832）",
+        "[low][security-review] 審查的 hunk 沒有發現問題",
+        "[low][code-review] 測試名稱寫「does not throw」，但只靠 `await` 沒拋錯來隱含驗證；改成 `await expectLater(controller.setOnConsoleMessage(...), completes)` 讓意圖寫在斷言上（webkit_webview_controller_test.dart:1828）",
+        "[low][code-review] 測試裡寫死 `'fltConsoleMessage'`，和 controller 的 `_onConsoleMessageChannelName` 是兩份字串；把常數改成 `@visibleForTesting` 的公開常數讓測試引用，避免兩邊改名時不同步（webkit_webview_controller_test.dart:1834）"
+      ]
+    }
+  ],
+  "components": [
+    {
+      "id": "changelog",
+      "type": "frontend",
+      "label": "CHANGELOG.md",
+      "sublabel": "3.23.7 條目",
+      "layers": {
+        "mvvm": "model",
+        "flutter": "data"
+      },
+      "pos": [
+        20,
+        30
+      ],
+      "size": [
+        220,
+        78
+      ],
+      "files": [
+        {
+          "path": "packages/webview_flutter/webview_flutter_wkwebview/CHANGELOG.md",
+          "summary": "新增 3.23.7 條目：修正重複呼叫 setOnConsoleMessage 的當機",
+          "hunks": "all"
+        }
+      ],
+      "code": {
+        "brief": {
+          "role": "**`CHANGELOG.md`** 是 `webview_flutter_wkwebview` 套件的版本紀錄。",
+          "task": "最上方新增 `3.23.7`，寫明修正「重複呼叫 `setOnConsoleMessage` 會當掉」。"
+        }
+      }
+    },
+    {
+      "id": "menu",
+      "type": "frontend",
+      "label": "main.dart",
+      "sublabel": "_onLogExample（未改動）",
+      "layers": {
+        "mvvm": "view",
+        "flutter": "ui"
+      },
+      "pos": [
+        20,
+        144
+      ],
+      "size": [
+        250,
+        78
+      ],
+      "code": {
+        "brief": {
+          "role": "**`main.dart`** 是 `webview_flutter_wkwebview` 的範例 App，右上選單的每個項目示範一個 WebView 功能。",
+          "task": "這次沒有改動。選單的「Log example」會呼叫 `_onLogExample`，它每次都呼叫 `setOnConsoleMessage` 再載入 `kLogExamplePage`，所以點第二次就會走到這次修的路徑。"
+        }
+      }
+    },
+    {
+      "id": "pubspec",
+      "type": "frontend",
+      "label": "pubspec.yaml",
+      "sublabel": "version 3.23.7",
+      "layers": {
+        "mvvm": "model",
+        "flutter": "data"
+      },
+      "pos": [
+        850,
+        30
+      ],
+      "size": [
+        220,
+        78
+      ],
+      "files": [
+        {
+          "path": "packages/webview_flutter/webview_flutter_wkwebview/pubspec.yaml",
+          "summary": "版本從 3.23.6 升到 3.23.7",
+          "hunks": "all"
+        }
+      ],
+      "code": {
+        "brief": {
+          "role": "**`pubspec.yaml`** 是套件的設定檔，記錄名稱、版本與相依套件。",
+          "task": "`version` 從 `3.23.6` 改成 `3.23.7`，和 CHANGELOG 的新條目對應。"
+        }
+      }
+    },
+    {
+      "id": "ctrl",
+      "type": "frontend",
+      "label": "webkit_webview_controller.dart",
+      "sublabel": "setOnConsoleMessage",
+      "layers": {
+        "mvvm": "model",
+        "flutter": "data"
+      },
+      "pos": [
+        420,
+        144
+      ],
+      "size": [
+        300,
+        78
+      ],
+      "files": [
+        {
+          "path": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+          "summary": "channel 已註冊時不再重複註冊；channel 名稱改用常數；addJavaScriptChannel 改為 await",
+          "hunks": "all"
+        }
+      ],
+      "code": {
+        "brief": {
+          "role": "**`webkit_webview_controller.dart`** 是 iOS／macOS 版 WebView 的 controller，把 Flutter 端的呼叫轉成 `WKWebView` 的操作。",
+          "task": "`setOnConsoleMessage` 先存下 callback，再檢查 `_javaScriptChannelParams` 是否已有 console channel；有就直接 return，沒有才建立 channel 並 `await addJavaScriptChannel`，最後注入改寫 `console.log` 的腳本。",
+          "concepts": [
+            {
+              "term": "JavaScript channel",
+              "text": "WebView 外掛提供的名稱通道：網頁用這個名字送訊息，App 端用同一個名字收訊息。同一個名字只能註冊一次。"
+            },
+            {
+              "term": "WKScriptMessageHandler",
+              "text": "WebKit 收網頁訊息的介面，網頁呼叫 `window.webkit.messageHandlers.<name>.postMessage(...)` 時，App 端對應名字的 handler 會收到。"
+            },
+            {
+              "term": "未 await 的 Future",
+              "text": "Dart 裡沒有被 `await` 的 `Future` 若失敗，錯誤不會回到呼叫端，而是變成未處理的非同步例外。"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ucc",
+      "type": "frontend",
+      "label": "WKUserContentController",
+      "sublabel": "message handler（未改動）",
+      "layers": {
+        "mvvm": "model",
+        "flutter": "data"
+      },
+      "pos": [
+        435,
+        30
+      ],
+      "size": [
+        270,
+        78
+      ],
+      "code": {
+        "brief": {
+          "role": "**`WKUserContentController`** 是 WebKit 管理注入腳本與 script message handler 的物件。",
+          "task": "這次沒有改動。`addJavaScriptChannel` 會向它加入一個 user script 與一個同名的 script message handler。"
+        }
+      }
+    },
+    {
+      "id": "page",
+      "type": "frontend",
+      "label": "網頁 console",
+      "sublabel": "被改寫的 console.log（未改動）",
+      "layers": {
+        "mvvm": "view",
+        "flutter": "ui"
+      },
+      "pos": [
+        850,
+        144
+      ],
+      "size": [
+        280,
+        78
+      ],
+      "code": {
+        "brief": {
+          "role": "**網頁 console** 指 WebView 裡網頁執行的 `console.log`、`console.warn` 等方法。",
+          "task": "這次沒有改動網頁本身。controller 注入的腳本會把這些方法改寫成把訊息 `postMessage` 給 App。"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "menu-ctrl",
+      "from": "menu",
+      "to": "ctrl",
+      "label": "setOnConsoleMessage",
+      "file": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+      "hunks": [
+        1,
+        2,
+        3
+      ],
+      "from_symbol": "SampleMenu._onLogExample",
+      "to_symbol": "WebKitWebViewController.setOnConsoleMessage",
+      "action": "使用者在範例 App 右上選單點「Log example」（`main.dart:408` 呼叫 `_onLogExample`）",
+      "note": "第二次呼叫 **`setOnConsoleMessage`** 只換掉 callback，不再重新註冊 channel。",
+      "tests": {
+        "functions": [
+          {
+            "symbol": "_onConsoleMessageChannelName",
+            "why": "判斷是否已註冊和注入的 JS 都用這個名稱；兩邊對不上，console 訊息就送不回 App",
+            "lines": "+297",
+            "status": "new",
+            "by": [
+              "setOnConsoleMessage called twice does not throw"
+            ],
+            "via": "setOnConsoleMessage"
+          },
+          {
+            "symbol": "setOnConsoleMessage",
+            "why": "第二次呼叫只換掉 callback；若又註冊同名 channel，App 會當掉",
+            "lines": "-703,+705,+708..+711,-707,+714,-739,+746",
+            "status": "new",
+            "by": [
+              "setOnConsoleMessage called twice does not throw"
+            ]
+          }
+        ],
+        "cases": [
+          {
+            "test": "setOnConsoleMessage called twice does not throw",
+            "given": "用 mock 的 `WKUserContentController` 建出 controller",
+            "when": "連續 `await` 兩次 `setOnConsoleMessage`，callback 都是空函式",
+            "then": "沒有對 `fltConsoleMessage` 呼叫 `removeScriptMessageHandler`",
+            "covers": [
+              "setOnConsoleMessage",
+              "_onConsoleMessageChannelName"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "ctrl-ucc",
+      "from": "ctrl",
+      "to": "ucc",
+      "label": "message handler",
+      "file": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+      "hunks": [
+        2,
+        3
+      ],
+      "from_symbol": "WebKitWebViewController.setOnConsoleMessage",
+      "to_symbol": "WKUserContentController.addScriptMessageHandler",
+      "story": "**`WKUserContentController`** 像大樓的信箱管理員，每個名字只能掛一個信箱；**controller** 以前每次都去申請一個叫 `fltConsoleMessage` 的信箱，第二次就被管理員退件。現在 **controller** 先翻自己的登記簿 `_javaScriptChannelParams`，已經有這個信箱就不再申請。",
+      "note": "console channel 只會向 **`WKUserContentController`** 註冊一次。",
+      "tests": {
+        "functions": [
+          {
+            "symbol": "setOnConsoleMessage",
+            "why": "同名 channel 只能向 `WKUserContentController` 註冊一次，重複註冊會讓 App 當掉",
+            "lines": "+709..+710,+714,-739,+746",
+            "status": "new",
+            "by": [
+              "setOnConsoleMessage called twice does not throw"
+            ]
+          }
+        ],
+        "cases": [
+          {
+            "test": "setOnConsoleMessage called twice does not throw",
+            "given": "用 mock 的 `WKUserContentController` 建出 controller",
+            "when": "連續 `await` 兩次 `setOnConsoleMessage`，callback 都是空函式",
+            "then": "沒有對 `fltConsoleMessage` 呼叫 `removeScriptMessageHandler`",
+            "covers": [
+              "setOnConsoleMessage"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "ctrl-page",
+      "from": "ctrl",
+      "to": "page",
+      "label": "注入腳本",
+      "file": "packages/webview_flutter/webview_flutter_wkwebview/lib/src/webkit_webview_controller.dart",
+      "hunks": [
+        4,
+        5
+      ],
+      "from_symbol": "WebKitWebViewController._injectConsoleOverride",
+      "to_symbol": "window.webkit.messageHandlers.fltConsoleMessage",
+      "story": "注入的腳本像替網頁的 `console` 裝上一支對講機，對講機的頻道名稱以前是手寫在腳本裡的 `fltConsoleMessage`；現在改成從 **controller** 的常數抄過來，App 和網頁兩邊用的是同一個頻道名。",
+      "note": "注入網頁的 JS 改用同一個 channel 名稱常數。",
+      "tests": {
+        "functions": [
+          {
+            "symbol": "_injectConsoleOverride",
+            "why": "注入的 JS 要用和 App 相同的 channel 名稱，否則網頁的 console 訊息送不回 App",
+            "lines": "-906,+913..+914,-935,+943",
+            "status": "new",
+            "by": [
+              "setOnConsoleMessage called twice does not throw"
+            ],
+            "via": "setOnConsoleMessage"
+          }
+        ],
+        "cases": [
+          {
+            "test": "setOnConsoleMessage called twice does not throw",
+            "given": "用 mock 的 `WKUserContentController` 建出 controller",
+            "when": "連續 `await` 兩次 `setOnConsoleMessage`，callback 都是空函式",
+            "then": "沒有對 `fltConsoleMessage` 呼叫 `removeScriptMessageHandler`",
+            "covers": [
+              "_injectConsoleOverride"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+#!/bin/sh
+# review-kit launcher: runs the prebuilt binary for this OS/arch, else falls back to `go run`.
+here=$(cd "$(dirname "$0")" && pwd)
+os=$(uname -s | tr '[:upper:]' '[:lower:]')
+case $(uname -m) in
+  arm64|aarch64) arch=arm64 ;;
+  x86_64|amd64) arch=amd64 ;;
+  *) arch=$(uname -m) ;;
+esac
+bin="$here/review-kit-$os-$arch"
+if [ -x "$bin" ]; then exec "$bin" "$@"; fi
+src="$here/../tools/review-kit"
+if command -v go >/dev/null 2>&1 && [ -d "$src" ]; then
+  # build to a temp file (not `go run -C`) so relative path args keep the caller's cwd
+  tmp=$(mktemp -d) || exit 1
+  go build -C "$src" -o "$tmp/review-kit" . || { rm -rf "$tmp"; exit 1; }
+  "$tmp/review-kit" "$@"; rc=$?
+  rm -rf "$tmp"
+  exit $rc
+fi
+echo "review-kit: no prebuilt binary for $os/$arch (supported: darwin-arm64, darwin-amd64, linux-amd64, linux-arm64) and Go is not installed; install Go (https://go.dev/dl/) to run from source." >&2
+exit 1
