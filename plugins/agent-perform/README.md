@@ -129,4 +129,3 @@ Claude Mod 在輸入框上方顯示即時數字和 Claude Code 正在做的事�
 
 - **自動 compact**：`plugin.json` 的 `userConfig.autoCompact`，預設關閉。開啟後，context 在 60% 以上且閒置一小時，會先 `/recap` 再 compact。
 - **閒置釋放記憶體**：連續 5 分鐘沒有人開頁面，服務會把算好的頁面存到磁碟並重啟自己。頁面開著時每 3 分鐘自動重新整理，不看時請關掉分頁。
-- **遮蔽機密**：儀表板顯示對話內容前，會把 API key、token、`Authorization` 標頭、網址裡的密碼等格式遮掉，存到磁碟的頁面快取也是遮掉後的內容。只比對這些格式，不保證擋下所有機密。
