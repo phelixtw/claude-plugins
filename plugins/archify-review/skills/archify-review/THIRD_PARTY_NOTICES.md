@@ -19,7 +19,7 @@ in the font CSS carried by standalone HTML and SVG exports.
 
 The code-review test fixtures (`test/keep/fixtures/PR-*`, `test/fixtures/review-kit-plan.json`,
 `test/fixtures/review-kit-spec.json`, `test/fixtures/overlapping-components.architecture.json`)
-and the README animations (`readme-assets/*.gif`) quote diffs from
+and the README images (`readme-assets/`, including `readme-assets/en/`) quote diffs from
 [flutter/packages](https://github.com/flutter/packages), Copyright 2013 The Flutter Authors,
 distributed under the BSD 3-Clause License
 (https://github.com/flutter/packages/blob/main/LICENSE). Commits used:
